@@ -1,5 +1,7 @@
 # Drake Trivia
 
+Drake Trivia is an interactive trivia application hosted on an Azure-based Flask server. This app was built for the first annual Drake family trivia tournament. The app features a dynamic, real-time gameplay experience using [Web PubSub for Socket.IO](https://learn.microsoft.com/en-us/azure/azure-web-pubsub/socketio-quickstart#create-a-web-pubsub-for-socketio-resource) for live score updates and question delivery. Teams can sign in via a sleek interface, compete in double-elimination brackets, and track their progress on a live-scoring dashboard. Admins have dedicated tools to manage games, while Azure Storage Account Tables ensure efficient and scalable data management. With advanced metrics for rewarding team performance and a user-friendly design, Drake Trivia combines technology and fun for an engaging trivia experience.
+
 ## Trivia Category
 **General Knowledge**
 
@@ -14,8 +16,8 @@
 - **Brad & Julie**
 
 ## Project Requirements
-- **Score tracking dashboard**: Real-time score updates via web-sockets
-- **Dynamic question screen**: Questions are populated in real-time & update without refreshing (sockets?)
+- **Score tracking dashboard**: Real-time score updates via [Web PubSub for Socket.IO](https://learn.microsoft.com/en-us/azure/azure-web-pubsub/socketio-quickstart#create-a-web-pubsub-for-socketio-resource)
+- **Dynamic question screen**: Questions are populated in real-time & update without refreshing ([Web PubSub for Socket.IO](https://learn.microsoft.com/en-us/azure/azure-web-pubsub/socketio-quickstart#create-a-web-pubsub-for-socketio-resource))
 - **Azure Storage Account Tables**: Act as databases
 - **Team sign in**
 - **Admin sign in**
@@ -41,7 +43,7 @@
 ├── 📁 static/
 └───┬── 📁 images/
     └────── 🖼️ d-logo.png
-    ├── 📁 js/ 
+    ├── 📁 js/
     └───┬── 📜 admin.js
         ├── 📜 global.js
         ├── 📜 login.js
