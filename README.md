@@ -16,8 +16,9 @@
 ## Project Requirements
 - **Score tracking dashboard**: Real-time score updates via web-sockets
 - **Dynamic question screen**: Questions are populated in real-time & update without refreshing (sockets?)
-- **Team sign in**
 - **Azure Storage Account Tables**: Act as databases
+- **Team sign in**
+- **Admin sign in**
 
 ## Scoring
 - **Correct answers**: 5 points
