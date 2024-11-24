@@ -35,21 +35,27 @@
 
 ## Project Structure
 ```plaintext
+📁 Drake-Trivia/
 ├── 📜 app.py
 ├── 📄 README.md
-├── 📁 static
-└───┬── 📁 images
+├── 📁 static/
+└───┬── 📁 images/
     └────── 🖼️ d-logo.png
-    ├── 📁 js
-    └───┬── 📜 login.js
+    ├── 📁 js/ 
+    └───┬── 📜 admin.js
+        ├── 📜 global.js
+        ├── 📜 login.js
         ├── 📜 questions.js
         └── 📜 scores.js
-    ├── 📁 styles
-    └───┬── 🎨 login.css
+    ├── 📁 styles/
+    └───┬── 🎨 admin.css
+        ├── 🎨 global.css
+        ├── 🎨 login.css
         ├── 🎨 questions.css
         └── 🎨 scores.css
-├── 📁 templates
-└───┬── 🌐 login.html
+├── 📁 templates/
+└───┬── 🌐 admin.html
+    ├── 🌐 login.html
     ├── 🌐 questions.html
     └── 🌐 scores.html
 ```
