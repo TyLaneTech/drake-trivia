@@ -1,20 +1,33 @@
-# Introduction 
-TODO: Give a short introduction of your project. Let this section explain the objectives or the motivation behind this project. 
+# Drake Trivia
 
-# Getting Started
-TODO: Guide users through getting your code up and running on their own system. In this section you can talk about:
-1.	Installation process
-2.	Software dependencies
-3.	Latest releases
-4.	API references
+## Trivia Category
+**General Knowledge**
 
-# Build and Test
-TODO: Describe and show how to build your code and run the tests. 
+## Site URL
+[draketrivia.com](http://draketrivia.com)
 
-# Contribute
-TODO: Explain how other users and developers can contribute to make your code better. 
+## Teams
+- **Klayton, Lexi**
+- **Shorty & Brad’s No-Neck**
+- **K-Swag & Chester**
+- **The Claw (Kyler) & Delanie**
+- **Brad & Julie**
 
-If you want to learn more about creating good readme files then refer the following [guidelines](https://docs.microsoft.com/en-us/azure/devops/repos/git/create-a-readme?view=azure-devops). You can also seek inspiration from the below readme files:
-- [ASP.NET Core](https://github.com/aspnet/Home)
-- [Visual Studio Code](https://github.com/Microsoft/vscode)
-- [Chakra Core](https://github.com/Microsoft/ChakraCore)
+## Project Requirements
+- **Score tracking dashboard**: Real-time score updates via web-sockets
+- **Dynamic question screen**: Questions are populated in real-time & update without refreshing (sockets?)
+- **Team sign in**
+- **Azure Storage Account Tables**: Act as databases
+
+## Scoring
+- **Correct answers**: 5 points
+- **First to answer**: Additional 3 points
+- **Time spent answering**: Tracked and used to break ties
+- **Double elimination**
+- **Metrics**: Can be tracked to give “awards” to teams for things like “fastest-answers”, “most-accurate-answers”, etc.
+
+## General Flow
+1. **Team Sign in**: One team per device
+2. **Admin Starts game**
+3. **Teams compete**: Tournament style
+4. **Inactive teams**: Redirected to the bracket screen where scores are updated live
