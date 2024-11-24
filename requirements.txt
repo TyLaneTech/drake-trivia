@@ -1,0 +1,19 @@
+# Flask and Socket.IO
+flask-socketio
+python-socketio
+python-engineio
+Flask
+kombu
+
+# Azure SDK packages
+azure-data-tables
+azure-identity
+azure-core
+
+# Environment and server
+python-dotenv
+eventlet
+gunicorn
+
+# Azure Web PubSub
+azure-messaging-webpubsubservice

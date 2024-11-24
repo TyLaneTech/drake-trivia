@@ -1,1 +1,46 @@
+# Python Bytecode
+*.py[cod]
+*.pyo
+
+# Environment variables file
 .env
+
+# Virtual environments
+venv/
+env/
+
+# Python cache directories
+__pycache__/
+*.log
+
+# IDE and Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Flask-specific files
+instance/
+*.sqlite3
+*.db
+
+# Azure-specific files
+.local.settings.json
+funcignore
+hostingstart.html
+
+# Pytest and Testing
+htmlcov/
+.tox/
+.coverage
+coverage.xml
+*.pytest_cache/
+
+# Build and distribution directories
+build/
+dist/
+*.egg-info/
