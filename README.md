@@ -32,3 +32,24 @@
 2. **Admin Starts game**
 3. **Teams compete**: Tournament style
 4. **Inactive teams**: Redirected to the bracket screen where scores are updated live
+
+## Project Structure
+```plaintext
+├── 📜 app.py
+├── 📄 README.md
+├── 📁 static
+└───┬── 📁 images
+    └────── 🖼️ d-logo.png
+    ├── 📁 js
+    └───┬── 📜 login.js
+        ├── 📜 questions.js
+        └── 📜 scores.js
+    ├── 📁 styles
+    └───┬── 🎨 login.css
+        ├── 🎨 questions.css
+        └── 🎨 scores.css
+├── 📁 templates
+└───┬── 🌐 login.html
+    ├── 🌐 questions.html
+    └── 🌐 scores.html
+```
