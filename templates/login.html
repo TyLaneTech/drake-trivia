@@ -1,1 +1,35 @@
 <!-- templates/login.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drake Trivia - Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/global.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/login.css') }}">
+</head>
+<body>
+    <div class="container">
+        <img src="{{ url_for('static', filename='images/d-logo.png') }}" alt="Drake Trivia Logo" class="logo">
+        <h1>Drake Trivia</h1>
+
+        <form action="{{ url_for('login') }}" method="POST" class="login-form">
+            <select name="team_name" required class="team-select">
+                <option value="">Select Your Team</option>
+                <option value="Klayton_Lexi">Klayton, Lexi</option>
+                <option value="Shorty_Brad">Shorty & Brad's No-Neck</option>
+                <option value="KSwag_Chester">K-Swag & Chester</option>
+                <option value="Kyler_Delanie">The Claw (Kyler) & Delanie</option>
+                <option value="Brad_Julie">Brad & Julie</option>
+            </select>
+            <button type="submit" class="login-btn">Enter Game</button>
+        </form>
+
+        <div class="admin-link">
+            <a href="{{ url_for('admin') }}">Admin Login</a>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/login.js') }}"></script>
+</body>
+</html>

@@ -1,1 +1,35 @@
 <!-- templates/questions.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drake Trivia - Questions</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/global.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/questions.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Team: {{ team }}</h2>
+            <div class="score">Score: <span id="team-score">0</span></div>
+        </div>
+
+        <div class="question-container">
+            <div id="question-text">Waiting for question...</div>
+            <div id="timer">30</div>
+
+            <form id="answer-form" class="answer-form">
+                <input type="text" id="answer-input" placeholder="Your answer..." autocomplete="off">
+                <button type="submit" id="submit-btn">Submit</button>
+            </form>
+        </div>
+
+        <div class="status-message" id="status-message"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script src="{{ url_for('static', filename='js/global.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/questions.js') }}"></script>
+</body>
+</html>
