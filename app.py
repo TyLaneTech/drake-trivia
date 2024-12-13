@@ -451,7 +451,6 @@ def webserver():
 
 if __name__ == '__main__':
     try:
-        setup_logging()
         # Get application instance
         app = webserver()
 
@@ -465,3 +464,6 @@ if __name__ == '__main__':
     except Exception as e:
         print(f"Failed to start server: {str(e)}")
         raise
+else:
+    setup_logging()
+    app = webserver()  # Add this line to expose `app` globally for Gunicorn
