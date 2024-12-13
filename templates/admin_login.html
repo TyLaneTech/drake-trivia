@@ -1,4 +1,4 @@
-<!-- templates/admin.html -->
+<!-- templates/admin_login.html -->
 {% extends "base.html" %}
 
 {% block extra_css %}
@@ -9,12 +9,8 @@
 <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
 {% endblock %}
 
-{% block title %}Admin Dashboard{% endblock %}
+{% block title %}Admin Login{% endblock %}
 
 {% block content %}
-<div class="admin-dashboard">
-    <h1>Welcome, Admin</h1>
-    <!-- Add admin dashboard content here -->
-    <div id="admin-dashboard-container"></div>
-</div>
+<div id="admin-container"></div>
 {% endblock %}

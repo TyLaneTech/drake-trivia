@@ -1,1 +1,181 @@
 /* static/styles/scores.css */
+
+.page-container {
+    padding: var(--spacing-xl);
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Tournament Bracket Styles */
+.tournament-bracket {
+    background-color: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xl);
+    margin-bottom: var(--spacing-xl);
+    box-shadow: var(--shadow-lg);
+    overflow-x: auto;
+}
+
+.bracket-round {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: var(--spacing-xl);
+    min-width: 800px; /* Ensures minimum width for scrolling */
+}
+
+.bracket-match {
+    background-color: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md);
+    min-width: 200px;
+    text-align: center;
+    box-shadow: var(--shadow-md);
+}
+
+.match-team {
+    padding: var(--spacing-sm);
+    margin: var(--spacing-xs) 0;
+    border-radius: var(--radius-sm);
+    transition: background-color var(--transition-fast);
+}
+
+.match-team.winner {
+    background-color: var(--primary);
+    color: white;
+}
+
+.match-team.loser {
+    background-color: var(--surface-1);
+    color: var(--text-tertiary);
+}
+
+/* Live Scores Board */
+.scoreboard {
+    background-color: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xl);
+    margin-bottom: var(--spacing-xl);
+    box-shadow: var(--shadow-lg);
+}
+
+.scoreboard h2 {
+    margin-bottom: var(--spacing-lg);
+    color: var(--text-secondary);
+}
+
+.scores-list {
+    display: grid;
+    gap: var(--spacing-md);
+}
+
+.score-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-md);
+    background-color: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    transition: transform var(--transition-fast);
+}
+
+.score-item:hover {
+    transform: translateX(5px);
+}
+
+.team-name {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.team-score {
+    font-weight: 700;
+    color: var(--primary);
+}
+
+/* Team Metrics Section */
+.metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+.metrics > div {
+    background-color: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    box-shadow: var(--shadow-md);
+}
+
+#fastest-answers, #most-accurate {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.metric-value {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--primary);
+}
+
+.metric-label {
+    color: var(--text-tertiary);
+    font-size: 0.9rem;
+}
+
+/* Animation for score updates */
+@keyframes scoreUpdate {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.score-updated {
+    animation: scoreUpdate 0.5s ease;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .page-container {
+        padding: var(--spacing-md);
+    }
+
+    .tournament-bracket {
+        padding: var(--spacing-md);
+        margin: var(--spacing-md) -var(--spacing-md);
+        border-radius: 0;
+    }
+
+    .metrics {
+        grid-template-columns: 1fr;
+    }
+
+    .score-item {
+        flex-direction: column;
+        text-align: center;
+        gap: var(--spacing-sm);
+    }
+
+    .score-item:hover {
+        transform: none;
+    }
+}
+
+/* Scrollbar Styling */
+.tournament-bracket::-webkit-scrollbar {
+    height: 8px;
+}
+
+.tournament-bracket::-webkit-scrollbar-track {
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-sm);
+}
+
+.tournament-bracket::-webkit-scrollbar-thumb {
+    background: var(--surface-2);
+    border-radius: var(--radius-sm);
+}
+
+.tournament-bracket::-webkit-scrollbar-thumb:hover {
+    background: var(--surface-3);
+}

@@ -1,1 +1,100 @@
 /* static/styles/admin.css */
+
+/* Admin Login/Setup Styles */
+.admin-setup-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 50px;
+}
+
+.admin-setup-card {
+    background-color: #f9f9f9;
+    padding: 30px;
+    border-radius: 8px;
+    width: 100%;
+    max-width: 400px;
+}
+
+.admin-setup-card h2 {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.admin-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.admin-form div {
+    margin-bottom: 15px;
+}
+
+.admin-form label {
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.admin-input {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.admin-button {
+    padding: 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.admin-button:hover {
+    background-color: #0056b3;
+}
+
+.error-message {
+    color: red;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.mb-4 {
+    margin-bottom: 1.5rem;
+}
+
+/* Admin Dashboard Styles */
+.admin-dashboard {
+    padding: 50px;
+}
+
+.admin-dashboard h1 {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+#admin-dashboard-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+#admin-dashboard-container h2 {
+    margin-bottom: 20px;
+}
+
+#admin-dashboard-container ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+#admin-dashboard-container li {
+    background-color: #f9f9f9;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+}

@@ -1,37 +1,35 @@
 <!-- templates/scores.html -->
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Drake Trivia - Scores</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles/global.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles/scores.css') }}">
-</head>
-<body>
-    <div class="container">
-        <h1>Tournament Bracket</h1>
+{% extends "base.html" %}
 
-        <div class="tournament-bracket" id="bracket">
-            <!-- Bracket will be populated dynamically -->
-        </div>
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='styles/scores.css') }}">
+{% endblock %}
+{% block extra_js %}
+<link rel="stylesheet" href="{{ url_for('static', filename='js/scores.js') }}">
+{% endblock %}
 
-        <div class="scoreboard">
-            <h2>Live Scores</h2>
-            <div class="scores-list" id="scores-list">
-                <!-- Scores will be populated dynamically -->
-            </div>
-        </div>
+{% block title %}Scores{% endblock %}
 
-        <div class="metrics">
-            <h2>Team Metrics</h2>
-            <div id="fastest-answers">Fastest Answers: <span>--</span></div>
-            <div id="most-accurate">Most Accurate: <span>--</span></div>
+{% block content %}
+<div class="page-container">
+    <h1>Tournament Bracket</h1>
+
+    <div class="tournament-bracket" id="bracket">
+        <!-- Bracket will be populated dynamically -->
+    </div>
+
+    <div class="scoreboard">
+        <h2>Live Scores</h2>
+        <div class="scores-list" id="scores-list">
+            <!-- Scores will be populated dynamically -->
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
-    <script src="{{ url_for('static', filename='js/global.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/scores.js') }}"></script>
-</body>
-</html>
+    <div class="metrics">
+        <h2>Team Metrics</h2>
+        <div id="fastest-answers">Fastest Answers: <span>--</span></div>
+        <div id="most-accurate">Most Accurate: <span>--</span></div>
+    </div>
+    <input type="hidden" id="pubsub-token" value="{{ pubsub_token }}">
+</div>
+{% endblock %}

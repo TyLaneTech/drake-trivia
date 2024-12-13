@@ -1,35 +1,40 @@
 <!-- templates/login.html -->
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Drake Trivia - Login</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles/global.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles/login.css') }}">
-</head>
-<body>
-    <div class="container">
-        <img src="{{ url_for('static', filename='images/d-logo.png') }}" alt="Drake Trivia Logo" class="logo">
-        <h1>Drake Trivia</h1>
+{% extends "base.html" %}
 
-        <form action="{{ url_for('login') }}" method="POST" class="login-form">
-            <select name="team_name" required class="team-select">
-                <option value="">Select Your Team</option>
-                <option value="Klayton_Lexi">Klayton, Lexi</option>
-                <option value="Shorty_Brad">Shorty & Brad's No-Neck</option>
-                <option value="KSwag_Chester">K-Swag & Chester</option>
-                <option value="Kyler_Delanie">The Claw (Kyler) & Delanie</option>
-                <option value="Brad_Julie">Brad & Julie</option>
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='styles/login.css') }}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/login.js') }}"></script>
+{% endblock %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <div class="login-card">
+        <img src="{{ url_for('static', filename='images/d-logo.png') }}" alt="Drake Trivia Logo" class="login-logo">
+        <h1 class="login-title">Drake Trivia</h1>
+
+        <!-- Team Login Form -->
+        <form id="team-login-form" class="login-form">
+            <select id="team-select" name="team_name" class="team-select" required>
+                <option value="" disabled selected>Select Your Team</option>
+                <option value="Klayton, Lexi">Klayton, Lexi</option>
+                <option value="Shorty & Brad's No-Neck">Shorty & Brad's No-Neck</option>
+                <option value="K-Swag & Chester">K-Swag & Chester</option>
+                <option value="The Claw (Kyler) & Delanie">The Claw (Kyler) & Delanie</option>
+                <option value="Brad & Julie">Brad & Julie</option>
             </select>
-            <button type="submit" class="login-btn">Enter Game</button>
+
+            <button type="submit" class="login-button">Enter Game</button>
         </form>
 
+        <!-- Admin Login Link -->
         <div class="admin-link">
-            <a href="{{ url_for('admin') }}">Admin Login</a>
+            <a href="{{ url_for('admin_login') }}" class="admin-login-link">Admin Login</a>
         </div>
     </div>
-
-    <script src="{{ url_for('static', filename='js/login.js') }}"></script>
-</body>
-</html>
+</div>
+{% endblock %}
