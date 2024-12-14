@@ -238,7 +238,7 @@ def webserver():
                     'active': True
                 })
                 session['team_name'] = team_name
-                return redirect(url_for('questions'))
+                return redirect(url_for('scores'))
         return render_template('login.html')
 
     @app.route('/admin-login', methods=['GET', 'POST'])
@@ -367,6 +367,7 @@ def webserver():
 
         # Generate client access token for WebPubSub
         token = question_client.get_client_access_token()
+        print(token)
 
         return render_template(
             'questions.html',
@@ -466,4 +467,4 @@ if __name__ == '__main__':
         raise
 else:
     setup_logging()
-    app = webserver()  # Add this line to expose `app` globally for Gunicorn
+    app = webserver()
