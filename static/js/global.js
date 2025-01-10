@@ -4,7 +4,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
     handleSidebarState();
-    initializeSocketConnection();
+    //initializeSocketConnection();
 });
 
 

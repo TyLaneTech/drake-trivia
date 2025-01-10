@@ -3,8 +3,9 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from azure.messaging.webpubsubservice import WebPubSubServiceClient
 from azure.core.exceptions import ResourceNotFoundError
 from azure.data.tables import TableServiceClient
-import os, secrets, asyncio, json
+import os, secrets, asyncio, json, time
 from dotenv import load_dotenv
+from threading import Thread
 import secrets
 import logging
 
@@ -37,7 +38,14 @@ def setup_logging():
     azure_logger.propagate = False
     http_logger.propagate = False
 
-def webserver():
+def threadedCommand(command):
+    def subFunc(command):
+        print(f'Running Command: "{command}"')
+        time.sleep(0.2)
+        os.system(command)
+    Thread(target=subFunc, args=[command], daemon=True).start()
+
+def webserver(devMode=False):
     """Initialize and run the Flask web server with all configurations"""
     # Load environment variables
     load_dotenv()
@@ -207,9 +215,13 @@ def webserver():
     app.before_request(check_login)
 
     # Initialize Azure Web PubSub client
-    question_client = WebPubSubServiceClient.from_connection_string(os.getenv('AZURE_WEBPUBSUB_CONNECTION_STRING'), hub='questions')
-    score_client = WebPubSubServiceClient.from_connection_string(os.getenv('AZURE_WEBPUBSUB_CONNECTION_STRING'), hub='scores')
-    table_service_client = TableServiceClient.from_connection_string(os.getenv('AZURE_STORAGE_CONNECTION_STRING'))
+    wps_connection_string = os.getenv('AZURE_WEBPUBSUB_CONNECTION_STRING')
+    sa_connection_string = os.getenv('AZURE_STORAGE_CONNECTION_STRING')
+
+    question_client = WebPubSubServiceClient.from_connection_string(wps_connection_string, hub='questions')
+    score_client = WebPubSubServiceClient.from_connection_string(wps_connection_string, hub='scores')
+
+    table_service_client = TableServiceClient.from_connection_string(sa_connection_string)
 
     # Initialize tables and get table clients
     tables = init_storage_tables(table_service_client)
@@ -217,6 +229,61 @@ def webserver():
     questions_table = tables['questions']['client']
     scores_table = tables['scores']['client']
     init_admin_table(table_service_client)
+
+    # Web PubSub event handler
+    @app.route('/eventhandler', methods=['POST', 'OPTIONS', 'GET'])
+    def handle_event():
+        try:
+            print(request.headers)
+            if request.method == 'OPTIONS':
+                # Handle the WebHook validation
+                if request.headers.get('WebHook-Request-Origin'):
+                    res = Response()
+                    res.headers['WebHook-Allowed-Origin'] = '*'
+                    return res
+
+            if request.method == 'POST':
+                event_type = request.headers.get('ce-type')
+                print(f"Received event of type: {event_type}")
+
+                if event_type == 'azure.webpubsub.sys.connect':
+                    return jsonify({'message': 'Client connected successfully'}), 200
+
+                elif event_type == 'azure.webpubsub.user.question':
+                    # Handle question messages
+                    message = request.get_json()
+                    print(f"Question event received: {message}")
+                    question_client.send_to_all(json.dumps(message))  # Broadcast to all clients in 'questions' hub
+                    return Response(status=200)
+
+                elif event_type == 'azure.webpubsub.user.score':
+                    # Handle score updates
+                    message = request.get_json()
+                    print(f"Score event received: {message}")
+                    score_client.send_to_all(json.dumps(message))  # Broadcast to all clients in 'scores' hub
+                    return Response(status=200)
+
+                else:
+                    print(f"Unknown event type: {event_type}")
+                    return Response("Unknown event type", status=400)
+
+            else:
+                return jsonify({'success': '"/eventhandler" endpoint is active'}), 200
+        except Exception as e:
+            print(f"Error handling event: {e}")
+            traceback.print_exc()
+            return Response("Oopsie", status=200)
+            return Response("Internal Server Error", status=500)
+
+    @app.context_processor
+    def inject_defaults():
+        endpoint = request.endpoint
+        userIP = request.remote_addr
+        print(f'{userIP} requested "{endpoint}"')
+        return {
+            'endpoint': endpoint,
+            'userIP': userIP
+        }
 
 
     # Route definitions
@@ -364,21 +431,11 @@ def webserver():
     def questions():
         if 'team_name' not in session:
             return redirect(url_for('login'))
+        return render_template('questions.html', team=session['team_name'])
 
-        # Generate client access token for WebPubSub
-        token = question_client.get_client_access_token()
-        print(token)
-
-        return render_template(
-            'questions.html',
-            team=session['team_name'],
-            pubsub_token=token
-        )
     @app.route('/scores')
     def scores():
-        token = score_client.get_client_access_token()
-
-        return render_template('scores.html', pubsub_token=token)
+        return render_template('scores.html')
 
     # WebPubSub event handlers
     @app.route('/api/submit_answer', methods=['POST'])
@@ -447,16 +504,23 @@ def webserver():
         except Exception as e:
             return jsonify({'error': str(e)}), 500
 
+    # Start Web PubSub tunnel for local development
+    if devMode:
+        print("Starting Web PubSub tunnel...")
+        command = f'awps-tunnel run --hub trivia --upstream http://localhost:8080 --connection {wps_connection_string}'
+        print(command)
+        #threadedCommand(command)
 
     return app
 
 if __name__ == '__main__':
     try:
+
         # Get application instance
-        app = webserver()
+        app = webserver(devMode=True)
 
         # Get configuration from environment variables
-        port = int(os.getenv('PORT', 5000))
+        port = int(os.getenv('PORT', 8080))
         host = os.getenv('HOST', '127.0.0.1')
 
         # Start the app

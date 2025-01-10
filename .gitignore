@@ -44,3 +44,6 @@ coverage.xml
 build/
 dist/
 *.egg-info/
+
+# Assets folder
+Assets/

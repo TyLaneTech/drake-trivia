@@ -1,68 +1,104 @@
 /* static/js/questions.js */
 
 // Initialize Azure Web PubSub connection
-let webSocket;
+document.addEventListener('DOMContentLoaded', () => {
+    initializeWebSocket('trivia');
+});
 
-async function initializeWebSocket(token) {
-    try {
-        // Connect to Azure Web PubSub
-        webSocket = new WebSocket(token);
+function initializeWebSocket(hubName) {
+    const hostname = "draketriviawps2.webpubsub.azure.com";
+    let ws;
+    let reconnectTimeout = 0; // 2 seconds
 
-        webSocket.onopen = () => {
-            console.log('Connected to Azure Web PubSub');
-            // Join the trivia group
-            webSocket.send(JSON.stringify({
-                type: 'joinGroup',
-                group: 'trivia'
-            }));
+    const connectWebSocket = () => {
+        let socketURL = 'wss://draketriviawps2.webpubsub.azure.com/client/hubs/Hub?access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJ3c3M6Ly9kcmFrZXRyaXZpYXdwczIud2VicHVic3ViLmF6dXJlLmNvbS9jbGllbnQvaHVicy9IdWIiLCJpYXQiOjE3MzQ2MjgzMDcsImV4cCI6MTczNDYzMTkwN30.OvH3ndZSrwnNuHBoNwjtCmARPYoua7Zn8wJgK48T4hk';
+        //let socketURL = `wss://${hostname}/client/hubs/${hubName}`;
+        ws = new WebSocket(socketURL);
+        console.log(`Connected to WebPubSub: ${socketURL}`);
+        ws.onopen = () => {
+            console.log(`WebSocket connection opened for hub: ${hubName}`);
         };
 
-        webSocket.onclose = () => {
-            console.log('Disconnected from Azure Web PubSub');
-            // Attempt to reconnect after a delay
-            setTimeout(() => initializeWebSocket(token), 5000);
+        ws.onclose = () => {
+            console.log(`WebSocket connection closed for hub: ${hubName}. Attempting to reconnect...`);
+            setTimeout(connectWebSocket, reconnectTimeout);
         };
 
-        webSocket.onerror = (error) => {
-            console.error('WebSocket Error:', error);
+        ws.onerror = (error) => {
+          ///  console.error(`WebSocket error for hub: ${hubName}`, error);
         };
 
-        webSocket.onmessage = (event) => {
+        ws.onmessage = (event) => {
             const message = JSON.parse(event.data);
+            console.log(`Received message on hub ${hubName}:`, message);
 
-            // Handle different event types
-            switch (message.event) {
-                case 'score_update':
-                    handleScoreUpdate(message.data);
+            switch (hubName) {
+                case 'questions':
+                    handleQuestionMessage(message);
                     break;
-                case 'new_question':
-                    handleNewQuestion(message.data);
+                case 'scores':
+                    handleScoreMessage(message);
                     break;
+                case 'trivia':
+                    console.log(`Trivia Message: ${message}`)
                 default:
-                    console.log('Unknown message type:', message);
+                    console.error(`Unknown hub: ${hubName}`);
             }
         };
-    } catch (error) {
-        console.error('Failed to initialize WebSocket:', error);
+    };
+
+    connectWebSocket();
+}
+
+function handleQuestionMessage(message) {
+    switch (message.type) {
+        case 'question':
+            displayQuestion(message.data);
+            break;
+        case 'timer':
+            updateTimer(message.data);
+            break;
+        default:
+            console.log('Unknown question message type:', message.type);
     }
 }
 
-// Handle score updates
-function handleScoreUpdate(data) {
-    const scoreElement = document.getElementById('team-score');
-    if (data.team === currentTeam) {
-        scoreElement.textContent = data.new_score;
+function handleScoreMessage(message) {
+    switch (message.type) {
+        case 'scoreUpdate':
+            updateScore(message.data);
+            break;
+        default:
+            console.log('Unknown score message type:', message.type);
     }
 }
 
-// Handle new questions
-function handleNewQuestion(data) {
-    const questionElement = document.getElementById('question-text');
+function displayQuestion(data) {
+    const questionElement = document.getElementById('question');
+    const answersElement = document.getElementById('answers');
     questionElement.textContent = data.question;
-    // Reset timer and other UI elements as needed
+    answersElement.innerHTML = ''; // Clear previous answers
+    data.answers.forEach(answer => {
+        const li = document.createElement('li');
+        li.textContent = answer;
+        answersElement.appendChild(li);
+    });
 }
 
-// Submit answer
+function updateScore(data) {
+    const scoreElement = document.getElementById(`score-${data.team}`);
+    if (scoreElement) {
+        scoreElement.textContent = data.score;
+    }
+}
+
+function updateTimer(data) {
+    const timerElement = document.getElementById('timer');
+    timerElement.textContent = data.timeLeft;
+}
+
+
+// Submit an answer
 async function submitAnswer(answer) {
     try {
         const response = await fetch('/api/submit_answer', {
@@ -88,9 +124,3 @@ async function submitAnswer(answer) {
         console.error('Error submitting answer:', error);
     }
 }
-
-// Initialize when the page loads
-document.addEventListener('DOMContentLoaded', () => {
-    const pubsubToken = document.getElementById('pubsub-token').value;
-    initializeWebSocket(pubsubToken);
-});

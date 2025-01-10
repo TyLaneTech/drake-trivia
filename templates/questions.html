@@ -6,7 +6,7 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='styles/questions.css') }}">
 {% endblock %}
 {% block extra_js %}
-<link rel="stylesheet" href="{{ url_for('static', filename='styles/questions.js') }}">
+<script src="{{ url_for('static', filename='js/questions.js') }}"></script>
 {% endblock %}
 
 {% block title %}Questions{% endblock %}
@@ -27,7 +27,7 @@
     </form>
 
     <div class="status-message" id="status-message"></div>
-    <input type="hidden" id="pubsub-token" value="{{ pubsub_token }}">
+
 
 
 </div>
