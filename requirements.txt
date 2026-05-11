@@ -9,8 +9,7 @@ python-engineio>=4.9,<5.0
 SQLAlchemy>=2.0,<3.0
 psycopg[binary]>=3.1,<4.0
 
-# Server
-gunicorn>=21.2
+# Server (Flask-SocketIO's built-in eventlet WSGI server)
 eventlet>=0.36,<1.0
 
 # Misc

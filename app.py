@@ -65,9 +65,12 @@ class AdminUser(db.Model):
 
 
 def _normalize_db_url(url: str) -> str:
-    # Railway/Heroku-style postgres:// → SQLAlchemy expects postgresql://
+    # Use the psycopg (v3) driver explicitly; SQLAlchemy's default postgresql://
+    # dialect maps to psycopg2, which isn't installed.
     if url.startswith('postgres://'):
-        url = url.replace('postgres://', 'postgresql://', 1)
+        url = url.replace('postgres://', 'postgresql+psycopg://', 1)
+    elif url.startswith('postgresql://'):
+        url = url.replace('postgresql://', 'postgresql+psycopg://', 1)
     return url
 
 
