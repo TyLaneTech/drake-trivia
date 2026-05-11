@@ -4,38 +4,35 @@
 
 {% block content %}
 <div class="play-shell">
-    <div class="play-stub" id="play-stub">
-        <span class="stub-label">Tournament Hall · Player Card</span>
-        <span class="stub-team" id="stub-team">
-            <svg class="icon" style="color: {{ session.get('team_color', '#8b1d2a') }}"><use href="/static/images/sprite.svg#i-{{ session.get('team_emoji', 'target') }}"/></svg>
-            {{ team_name }}
-        </span>
-    </div>
 
     <!-- WAITING -->
-    <article class="play-card" id="state-waiting">
-        <div class="card-eyebrow"><span class="eyebrow">Standby</span></div>
-        <h1 class="card-headline">
-            <span class="kicker">Welcome,</span>
-            <span class="kicker-team" id="my-team-name">{{ team_name }}</span>
-        </h1>
-        <p class="card-body drop-cap">
-            The host has not yet called the next question. Catch your breath, consult your tablemates, and be ready when the bell rings.
-        </p>
+    <section class="card play-card" id="state-waiting">
+        <div class="play-eyebrow">
+            <span class="dot-pulse"></span>
+            <span>Waiting for the next question</span>
+        </div>
+        <h1 class="play-title">Welcome,<br><span class="play-name-accent" id="my-team-name">{{ team_name }}</span></h1>
+        <p class="play-sub">Hang tight. When the host pushes a question, it&rsquo;ll appear right here.</p>
 
         <div class="my-status" id="my-rank-card" hidden>
-            <div class="status-tile" id="rank-tile">—</div>
-            <div class="status-lines">
-                <div class="status-row"><span class="status-key">Score</span><span class="status-val" id="my-score">0</span></div>
-                <div class="status-row"><span class="status-key">Standing</span><span class="status-val"><span id="my-rank">—</span> of <span id="total-teams">—</span></span></div>
+            <div class="status-rank">
+                <span class="status-rank-num" id="rank-tile">—</span>
+                <span class="status-rank-label">place</span>
+            </div>
+            <div class="status-divider"></div>
+            <div class="status-score">
+                <span class="status-score-num" id="my-score">0</span>
+                <span class="status-score-label">points</span>
+            </div>
+            <div class="status-divider"></div>
+            <div class="status-of">
+                of <span id="total-teams">—</span> teams
             </div>
         </div>
-
-        <div class="ornament"><span>Awaiting the next round</span></div>
-    </article>
+    </section>
 
     <!-- ASKING -->
-    <article class="play-card play-card-ask" id="state-asking" hidden>
+    <section class="card play-card play-card-ask" id="state-asking" hidden>
         <div class="ask-head">
             <div class="ask-tags">
                 <span class="tag tag-category" id="ask-category">Category</span>
@@ -43,9 +40,9 @@
                 <span class="tag tag-points" id="ask-points">+5</span>
             </div>
             <div class="ask-timer" id="ask-timer">
-                <svg viewBox="0 0 44 44" class="timer-ring" aria-hidden="true">
-                    <circle class="timer-ring-bg" cx="22" cy="22" r="20"/>
-                    <circle class="timer-ring-fg" cx="22" cy="22" r="20" id="timer-ring-fg"/>
+                <svg viewBox="0 0 48 48" class="timer-ring" aria-hidden="true">
+                    <circle class="timer-ring-bg" cx="24" cy="24" r="21"/>
+                    <circle class="timer-ring-fg" cx="24" cy="24" r="21" id="timer-ring-fg"/>
                 </svg>
                 <span class="timer-num" id="timer-num">--</span>
             </div>
@@ -57,71 +54,76 @@
             <ul class="choices" id="choices-list"></ul>
             <form class="free-text-form" id="free-text-form" hidden>
                 <input type="text" id="free-text-input" placeholder="Type your answer…" autocomplete="off">
-                <button type="submit" class="btn btn-ruby">Lock In</button>
+                <button type="submit" class="btn">Submit</button>
             </form>
         </div>
 
         <div class="answered-state" id="answered-state" hidden>
-            <span class="stamp">Locked In</span>
+            <span class="answered-tick">
+                <svg class="icon icon-lg"><use href="/static/images/sprite.svg#i-check"/></svg>
+            </span>
             <div class="answered-text">
-                <span class="answered-label">YOUR ANSWER</span>
+                <span class="answered-label">Locked in</span>
                 <span class="answered-value" id="locked-answer-text"></span>
             </div>
         </div>
-    </article>
+    </section>
 
     <!-- LOCKED -->
-    <article class="play-card" id="state-locked" hidden>
-        <div class="card-eyebrow"><span class="eyebrow">Answers · Closed</span></div>
+    <section class="card play-card" id="state-locked" hidden>
+        <div class="play-eyebrow">
+            <span class="dot-pulse" style="background: var(--warning)"></span>
+            <span style="color: var(--warning)">Answers locked</span>
+        </div>
         <div class="lock-mark">
             <svg class="icon icon-3xl"><use href="/static/images/sprite.svg#i-lock"/></svg>
         </div>
-        <h1 class="card-headline center">Pencils down.</h1>
-        <p class="card-body center">Awaiting the host&rsquo;s reveal…</p>
-    </article>
+        <h1 class="play-title centered">Pencils down.</h1>
+        <p class="play-sub centered">Waiting on the host&rsquo;s reveal…</p>
+    </section>
 
     <!-- REVEALED -->
-    <article class="play-card play-card-reveal" id="state-revealed" hidden>
-        <div class="card-eyebrow"><span class="eyebrow">Round Result</span></div>
+    <section class="card play-card play-card-reveal" id="state-revealed" hidden>
         <div class="reveal-banner" id="reveal-banner">
-            <span class="reveal-banner-icon" id="reveal-icon">—</span>
-            <span class="reveal-banner-text">
-                <span class="reveal-headline" id="reveal-headline">Hmm</span>
-                <span class="reveal-sub" id="reveal-sub">The correct answer was…</span>
-            </span>
+            <span class="reveal-icon-wrap" id="reveal-icon">—</span>
+            <div class="reveal-banner-text">
+                <span class="reveal-headline" id="reveal-headline">—</span>
+                <span class="reveal-sub" id="reveal-sub">—</span>
+            </div>
         </div>
 
-        <div class="reveal-answer">
-            <span class="reveal-answer-label">CORRECT ANSWER</span>
+        <div class="reveal-answer-card">
+            <span class="reveal-answer-label">Answer</span>
             <span class="reveal-answer-text" id="reveal-answer-pill">—</span>
         </div>
 
         <p class="reveal-explanation" id="reveal-explanation" hidden></p>
 
         <div class="reveal-score">
-            <div class="reveal-score-delta">
-                <span class="delta-num" id="reveal-score-delta">+0</span>
-                <span class="delta-label">this round</span>
+            <div class="reveal-score-cell delta">
+                <span class="cell-num" id="reveal-score-delta">+0</span>
+                <span class="cell-label">this round</span>
             </div>
-            <div class="reveal-score-total">
-                <span class="total-label">Total</span>
-                <span class="total-num" id="reveal-score-total">0</span>
+            <div class="reveal-score-cell total">
+                <span class="cell-num" id="reveal-score-total">0</span>
+                <span class="cell-label">total</span>
             </div>
         </div>
-    </article>
+    </section>
 
     <!-- FINALE -->
-    <article class="play-card play-card-finale" id="state-finale" hidden>
-        <div class="cover-establishment" style="margin-bottom: 8px;">— FINAL STANDINGS —</div>
-        <h1 class="card-headline center finale-title">The Tournament<br><em>Concludes</em></h1>
+    <section class="card play-card play-card-finale" id="state-finale" hidden>
+        <div class="finale-trophy">
+            <svg class="icon icon-3xl"><use href="/static/images/sprite.svg#i-trophy"/></svg>
+        </div>
+        <h1 class="play-title centered">Game over!</h1>
+        <p class="play-sub centered">Final standings:</p>
         <ol class="mini-leaderboard" id="finale-leaderboard"></ol>
-        <p class="hint center" style="margin-top: 14px;">The final tally is displayed on the great board.</p>
-    </article>
+    </section>
 
     <footer class="play-foot">
         <span id="connection-status" class="conn-status conn-status-off">offline</span>
-        <span class="dot">·</span>
-        <a href="{{ url_for('board.scoreboard') }}" target="_blank">Open scoreboard →</a>
+        <a href="{{ url_for('board.scoreboard') }}" target="_blank">View scoreboard →</a>
     </footer>
 </div>
 {% endblock %}

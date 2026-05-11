@@ -48,21 +48,21 @@
                 </div>
 
                 <div class="control-row">
-                    <button class="btn btn-ruby" id="btn-start-round">
+                    <button class="btn" id="btn-start-round">
                         <svg class="icon"><use href="/static/images/sprite.svg#i-play"/></svg>
-                        Next Round
+                        Next round
                     </button>
                     <button class="btn btn-ghost" id="btn-lock">
                         <svg class="icon"><use href="/static/images/sprite.svg#i-lock"/></svg>
                         Lock
                     </button>
-                    <button class="btn btn-mustard" id="btn-reveal">
+                    <button class="btn btn-cool" id="btn-reveal">
                         <svg class="icon"><use href="/static/images/sprite.svg#i-reveal"/></svg>
                         Reveal
                     </button>
                     <button class="btn btn-danger" id="btn-end-game">
                         <svg class="icon"><use href="/static/images/sprite.svg#i-cross"/></svg>
-                        End Game
+                        End game
                     </button>
                 </div>
                 <div class="hint">Or push a specific question from the Questions tab.</div>
@@ -94,8 +94,8 @@
                     <option value="true_false">True / False</option>
                     <option value="free_text">Free text</option>
                 </select>
-                <button class="primary-btn" id="btn-new-question">+ New question</button>
-                <button class="ghost-btn" id="btn-import-questions">Import JSON</button>
+                <button class="btn" id="btn-new-question">+ New question</button>
+                <button class="btn btn-ghost" id="btn-import-questions">Import JSON</button>
             </div>
         </header>
 
@@ -117,7 +117,7 @@
         <header class="panel-head">
             <h2>Teams</h2>
             <div class="panel-actions">
-                <button class="ghost-btn" id="btn-refresh-teams">Refresh</button>
+                <button class="btn btn-ghost" id="btn-refresh-teams">Refresh</button>
             </div>
         </header>
         <table class="data-table">
@@ -137,17 +137,17 @@
             <div class="setting-card">
                 <h3>Start a fresh game</h3>
                 <p>Ends the current game (if any) and starts a new one. Scores reset; question bank is preserved.</p>
-                <button class="ghost-btn ghost-btn-danger" id="btn-new-game">Start new game</button>
+                <button class="btn btn-danger" id="btn-new-game">Start new game</button>
             </div>
             <div class="setting-card">
                 <h3>Big-screen scoreboard</h3>
                 <p>Open this on a TV or projector for the live audience view.</p>
-                <a class="primary-btn" href="{{ url_for('board.scoreboard') }}" target="_blank">Open scoreboard ↗</a>
+                <a class="btn" href="{{ url_for('board.scoreboard') }}" target="_blank">Open scoreboard ↗</a>
             </div>
             <div class="setting-card">
                 <h3>Player link</h3>
                 <p>Teams can sign in at the root of this site.</p>
-                <button class="ghost-btn" id="btn-copy-link">Copy player link</button>
+                <button class="btn btn-ghost" id="btn-copy-link">Copy player link</button>
             </div>
         </div>
     </section>
@@ -176,7 +176,7 @@
         <div id="q-options-wrap" class="field">
             <span class="field-label">Options</span>
             <div id="q-options-list"></div>
-            <button type="button" class="ghost-btn" id="q-add-option">+ Add option</button>
+            <button type="button" class="btn btn-ghost" id="q-add-option">+ Add option</button>
         </div>
         <label class="field">
             <span class="field-label">Correct answer <span class="hint">(must match an option for multiple choice; use <code>|</code> to separate alternates for free text)</span></span>
@@ -199,8 +199,8 @@
             <textarea id="q-explanation" rows="2"></textarea>
         </label>
         <footer class="modal-foot">
-            <button type="button" class="ghost-btn" data-close>Cancel</button>
-            <button type="submit" class="primary-btn" id="q-save">Save question</button>
+            <button type="button" class="btn btn-ghost" data-close>Cancel</button>
+            <button type="submit" class="btn" id="q-save">Save question</button>
         </footer>
     </form>
 </dialog>
@@ -216,8 +216,8 @@
         <textarea id="import-text" rows="14" spellcheck="false" placeholder='[{"type": "multiple_choice", "text": "...", "options": ["..."], "correct_answer": "...", "category": "...", "points": 5, "time_limit_s": 30}]'></textarea>
         <div class="import-result" id="import-result" hidden></div>
         <footer class="modal-foot">
-            <button type="button" class="ghost-btn" data-close>Cancel</button>
-            <button type="button" class="primary-btn" id="btn-do-import">Import</button>
+            <button type="button" class="btn btn-ghost" data-close>Cancel</button>
+            <button type="button" class="btn" id="btn-do-import">Import</button>
         </footer>
     </form>
 </dialog>
@@ -227,8 +227,8 @@
     <div class="modal-body modal-body-confirm">
         <p id="confirm-message">Are you sure?</p>
         <div class="modal-foot">
-            <button type="button" class="ghost-btn" id="confirm-cancel">Cancel</button>
-            <button type="button" class="primary-btn primary-btn-danger" id="confirm-ok">Confirm</button>
+            <button type="button" class="btn btn-ghost" id="confirm-cancel">Cancel</button>
+            <button type="button" class="btn btn-danger" id="confirm-ok">Confirm</button>
         </div>
     </div>
 </dialog>

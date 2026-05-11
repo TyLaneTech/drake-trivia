@@ -11,15 +11,13 @@
     };
 
     const ui = {
+        sub: document.getElementById('board-sub'),
         roundNum: document.getElementById('board-round-num'),
         phase: document.getElementById('board-phase'),
         statusText: document.getElementById('board-status-text'),
 
-        // Standings
         leaderList: document.getElementById('board-leader-list'),
 
-        // Asking
-        askRoundNum: document.getElementById('ask-round-num'),
         category: document.getElementById('board-category'),
         difficulty: document.getElementById('board-difficulty'),
         points: document.getElementById('board-points'),
@@ -31,13 +29,12 @@
         timerRing: document.getElementById('board-timer-fg'),
         countDone: document.getElementById('board-count-done'),
         countTotal: document.getElementById('board-count-total'),
+        acBar: document.getElementById('ac-bar-fill'),
 
-        // Reveal
         revealAnswer: document.getElementById('board-reveal-answer'),
         revealExplanation: document.getElementById('board-reveal-explanation'),
         revealResults: document.getElementById('board-round-results'),
 
-        // Finale
         podium: document.getElementById('finale-podium'),
         awards: document.getElementById('finale-awards-list'),
         conn: document.getElementById('board-conn-status'),
@@ -107,10 +104,17 @@
         });
     };
 
+    const updateAnswerBar = () => {
+        if (!ui.acBar) return;
+        const done = Number(ui.countDone.textContent) || 0;
+        const total = Math.max(1, Number(ui.countTotal.textContent) || 1);
+        const pct = Math.min(100, Math.round((done / total) * 100));
+        ui.acBar.style.width = `${pct}%`;
+    };
+
     const renderAsking = (round, totalTeams) => {
         currentRound = round;
         const q = round.question;
-        ui.askRoundNum.textContent = round.sequence;
         ui.roundNum.textContent = round.sequence;
         ui.category.textContent = q.category;
         ui.difficulty.textContent = q.difficulty;
@@ -128,6 +132,7 @@
 
         ui.countDone.textContent = round.answer_count;
         ui.countTotal.textContent = totalTeams || 0;
+        updateAnswerBar();
         setPhase('Asking');
         showStage('asking');
         startTimer(round, q.time_limit_s);
@@ -149,12 +154,12 @@
         (round.answers || []).forEach(a => {
             const li = document.createElement('li');
             const correct = a.is_correct;
-            const tickIcon = window.dt.icon(correct ? 'check' : 'cross', { className: correct ? 'icon-forest' : 'icon-ruby' });
-            const emblemIcon = window.dt.icon(a.team_emoji || 'target', { className: 'icon-lg', color: a.team_color });
+            const tickIcon = window.dt.icon(correct ? 'check' : 'cross', { className: correct ? 'icon-success' : 'icon-danger' });
+            const emblemIcon = window.dt.icon(a.team_emoji || 'target', { color: a.team_color });
             li.innerHTML = `
                 <span class="rt-tick">${tickIcon}</span>
                 <span class="rt-emoji">${emblemIcon}</span>
-                <span class="rt-name" style="color: ${a.team_color || 'var(--ink)'}">${escapeHtml(a.team_name)}${a.is_first_correct ? '<span class="first-badge">First</span>' : ''}</span>
+                <span class="rt-name">${escapeHtml(a.team_name)}${a.is_first_correct ? '<span class="first-badge">First</span>' : ''}</span>
                 <span class="rt-answer">${escapeHtml(a.answer_text || '—')}</span>
                 <span class="rt-pts ${correct ? 'correct' : ''}">${correct ? '+' : ''}${a.points_awarded}</span>
             `;
@@ -251,6 +256,7 @@
         answer_count: (p) => {
             ui.countDone.textContent = p.answer_count;
             ui.countTotal.textContent = p.total_teams;
+            updateAnswerBar();
         },
         finale: renderFinale,
     });

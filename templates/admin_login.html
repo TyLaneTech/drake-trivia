@@ -1,16 +1,19 @@
 {% extends "base.html" %}
-{% block title %}Admin sign in — Drake Trivia{% endblock %}
+{% block title %}Host sign in — Drake Trivia{% endblock %}
 {% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='styles/login.css') }}">{% endblock %}
-{% block body_class %}has-bg-gradient{% endblock %}
 
 {% block content %}
 <div class="login-shell">
-    <div class="login-card">
-        <img src="{{ url_for('static', filename='images/d-logo.png') }}" alt="" class="login-logo">
-        <h1 class="login-title">Game Host</h1>
-        <p class="login-tagline" id="admin-tagline">Sign in to run the show.</p>
+    <div class="card login-card">
+        <header class="login-head">
+            <div class="login-logo-wrap">
+                <img src="{{ url_for('static', filename='images/d-logo.png') }}" alt="" class="login-logo">
+            </div>
+            <h1 class="login-title">Host sign in</h1>
+            <p class="login-tag" id="admin-tagline">Sign in to run the game.</p>
+        </header>
 
-        <div class="login-error" id="admin-error" hidden></div>
+        <div class="form-error" id="admin-error" hidden></div>
 
         <form id="admin-form" class="login-form">
             <label class="field">
@@ -21,12 +24,12 @@
                 <span class="field-label">Password</span>
                 <input type="password" id="admin-password" required autocomplete="current-password">
             </label>
-            <button type="submit" class="primary-btn login-btn" id="admin-submit">Sign in</button>
+            <button type="submit" class="btn btn-xl login-btn" id="admin-submit">Sign in</button>
         </form>
 
-        <div class="login-foot">
-            <a href="{{ url_for('auth.login') }}">← Back to team sign in</a>
-        </div>
+        <footer class="login-foot">
+            <a href="{{ url_for('auth.login') }}">← Player sign in</a>
+        </footer>
     </div>
 </div>
 {% endblock %}

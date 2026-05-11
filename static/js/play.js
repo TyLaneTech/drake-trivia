@@ -15,7 +15,6 @@
         myRankCard: document.getElementById('my-rank-card'),
         rankTile: document.getElementById('rank-tile'),
         myScore: document.getElementById('my-score'),
-        myRank: document.getElementById('my-rank'),
         totalTeams: document.getElementById('total-teams'),
 
         askCategory: document.getElementById('ask-category'),
@@ -63,7 +62,7 @@
     const stopTimer = () => {
         if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
     };
-    const TIMER_C = 125.66;  // 2 * pi * r where r=20
+    const TIMER_C = 131.95;  // 2 * pi * r where r=21
     const startTimer = (round, limit) => {
         stopTimer();
         if (!round.shown_at) return;
@@ -91,13 +90,9 @@
         const mine = leaderboard.find(r => r.team_id === me.team_id);
         if (!mine) { ui.myRankCard.hidden = true; return; }
         ui.myRankCard.hidden = false;
-        ui.rankTile.textContent = `#${mine.rank}`;
+        ui.rankTile.textContent = mine.rank;
         ui.myScore.textContent = mine.score;
-        ui.myRank.textContent = mine.rank;
         ui.totalTeams.textContent = leaderboard.length;
-        ui.rankTile.style.background = mine.color
-            ? `linear-gradient(135deg, ${mine.color}, ${mine.color}cc)`
-            : 'linear-gradient(135deg, var(--brand), var(--brand-2))';
         lastTotalScore = mine.score;
     };
 
