@@ -189,6 +189,9 @@ def delete_team(tid):
     t = db.session.get(Team, tid)
     if t is None:
         return jsonify({'error': 'not found'}), 404
+    # Remove dependent rows first (no DB-level cascade declared)
+    db.session.execute(db.delete(Answer).where(Answer.team_id == tid))
+    db.session.execute(db.delete(GameParticipant).where(GameParticipant.team_id == tid))
     db.session.delete(t)
     db.session.commit()
     game = get_active_game()
