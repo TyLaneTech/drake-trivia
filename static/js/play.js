@@ -162,8 +162,10 @@
         }
         ui.readyBlock.hidden = false;
         const myTeamId = me && me.team_id;
-        const iAmPending = !!(pending || []).find(p => p.team_id === myTeamId);
-        const iAmReady = myReadyRoundId === round.round_id || !iAmPending;
+        // Trust the local "I clicked ready for THIS round" signal — the pending
+        // list from the server can be empty momentarily before the state event
+        // arrives, and we don't want to falsely declare ourselves ready.
+        const iAmReady = myReadyRoundId === round.round_id;
         if (iAmReady) {
             ui.btnReady.hidden = true;
             ui.readyConfirmed.hidden = false;
@@ -172,7 +174,7 @@
             ui.btnReady.disabled = false;
             ui.readyConfirmed.hidden = true;
         }
-        // Waiting-on list (everyone still pending, including me if I haven't tapped yet)
+        // Waiting-on list — every team still pending, excluding me.
         const others = (pending || []).filter(p => p.team_id !== myTeamId);
         if (others.length) {
             ui.readyWaiting.hidden = false;
@@ -405,11 +407,18 @@
         const phase = payload.game.phase;
         const round = payload.round;
         if (phase === 'waiting' || !round) { showState('waiting'); stopTimer(); ui.roundOfStrip.hidden = !(currentGame && currentGame.target_question_count); renderRoundOf(); return; }
+        // Track which DOM state we're showing so we can detect phase changes
+        // even when the round_id stays the same.
+        const visibleState = Object.entries(states).find(([, el]) => !el.hidden);
+        const visiblePhase = visibleState ? visibleState[0] : null;
+
         if (phase === 'asking') {
-            // Only re-render if this is a different round than current
-            if (!currentRound || round.round_id !== currentRound.round_id) renderAsking(round);
-            else {
-                // Same round, maybe reconnected — keep UI but ensure timer is alive
+            // Re-render if this is a new round, OR if we're not currently
+            // showing the asking screen (covers transitions from revealed →
+            // asking when a fresh round starts under the same client).
+            if (!currentRound || round.round_id !== currentRound.round_id || visiblePhase !== 'asking') {
+                renderAsking(round);
+            } else {
                 renderRoundOf();
                 startTimer(round, round.question.time_limit_s);
             }
@@ -423,12 +432,22 @@
         connect: () => setConn(true),
         disconnect: () => setConn(false),
         state: handleState,
-        question_start: (payload) => {
-            currentRound = null; // force re-render
-            handleState({ game: currentGame || { state: 'active', phase: 'asking' }, round: payload, me });
+        question_start: (round) => {
+            // A new question started — own the phase transition here so we
+            // don't accidentally route through the stale currentGame.phase
+            // (that would render the new round as a broken "revealed" view).
+            if (currentGame) currentGame.phase = 'asking';
+            currentRound = null;
+            renderAsking(round);
         },
-        round_locked: () => renderLocked(),
-        reveal: (round) => renderRevealed(round, []),
+        round_locked: () => {
+            if (currentGame) currentGame.phase = 'locked';
+            renderLocked();
+        },
+        reveal: (round) => {
+            if (currentGame) currentGame.phase = 'revealed';
+            renderRevealed(round, []);
+        },
         ready_update: (data) => {
             // Re-render the waiting list / counted state if we're on the reveal screen.
             if (!currentRound || currentRound.round_id !== data.round_id) return;
