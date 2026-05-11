@@ -393,6 +393,139 @@
     font-weight: 600;
 }
 
+/* ---------------- Round-of indicator ---------------- */
+.round-of-strip {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 10px;
+    padding: 6px 14px;
+    margin-bottom: 14px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    align-self: flex-start;
+}
+.round-of-label {
+    font-size: 0.66rem;
+    color: var(--text-3);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-weight: 700;
+}
+.round-of-num {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    color: var(--text);
+    font-size: 0.96rem;
+    letter-spacing: 0.02em;
+}
+.round-of-sep {
+    color: var(--text-3);
+    font-weight: 500;
+    margin: 0 2px;
+}
+
+/* ---------------- Ready-up block (auto-host reveal) ---------------- */
+.ready-block {
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+}
+.btn-ready {
+    width: 100%;
+    padding: 14px 20px;
+    font-size: 1rem;
+    font-weight: 700;
+    background: var(--accent);
+    color: #0a0a14;
+    border: none;
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: 0 6px 22px var(--accent-glow);
+    transition: transform var(--t-fast), box-shadow var(--t-fast), opacity var(--t-fast);
+}
+.btn-ready:hover { transform: translateY(-1px); box-shadow: 0 10px 26px var(--accent-glow); }
+.btn-ready:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+.btn-ready .icon { width: 18px; height: 18px; }
+
+.ready-confirmed {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: var(--success-glow);
+    color: var(--success);
+    border: 1px solid rgba(74, 222, 128, 0.4);
+    border-radius: var(--radius-full);
+    font-weight: 600;
+    font-size: 0.94rem;
+}
+.ready-confirmed .icon { width: 18px; height: 18px; }
+
+.ready-waiting {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 14px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px dashed var(--border-2);
+    border-radius: var(--radius);
+}
+.ready-waiting-label {
+    font-size: 0.72rem;
+    color: var(--text-3);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+}
+.ready-waiting-list {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+}
+.ready-waiting-list li {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-2);
+    border-radius: var(--radius-full);
+    font-size: 0.86rem;
+    color: var(--text-2);
+}
+.ready-team-icon { display: inline-flex; }
+.ready-team-icon .icon { width: 14px; height: 14px; }
+.ready-team-name { font-weight: 500; }
+
+.ready-countdown {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 8px;
+    color: var(--text-3);
+    font-size: 0.82rem;
+}
+.ready-countdown-label { text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
+.ready-countdown-num {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    color: var(--accent);
+    font-size: 1rem;
+}
+
 /* ---------------- FINALE ---------------- */
 .finale-trophy {
     display: flex;

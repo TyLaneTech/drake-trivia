@@ -9,11 +9,15 @@ from flask_socketio import emit, join_room
 
 from . import db, socketio
 from .game import (
+    answer_count,
     broadcast_answer_count,
     broadcast_state,
     game_snapshot,
     get_active_game,
+    lock_round,
+    mark_ready,
     submit_answer,
+    total_teams_in_game,
 )
 from .models import Round, Team
 
@@ -74,3 +78,26 @@ def on_submit_answer(data):
         'response_time_ms': a.response_time_ms,
     })
     broadcast_answer_count(r)
+    # Auto-host: if every team has now answered, lock the round immediately
+    # rather than waiting out the timer.
+    if game.auto_host and r.phase == 'asking':
+        total = total_teams_in_game(game)
+        if total > 0 and answer_count(r) >= total:
+            lock_round(r, app=current_app._get_current_object())
+
+
+@socketio.on('team_ready')
+def on_team_ready(data):
+    if not session.get('team_id'):
+        emit('error', {'message': 'Not signed in as a team'})
+        return
+    game = get_active_game()
+    if game is None or not game.current_round_id:
+        emit('error', {'message': 'No active round'})
+        return
+    team = db.session.get(Team, session['team_id'])
+    if team is None:
+        emit('error', {'message': 'Team not found'})
+        return
+    mark_ready(game, team, current_app._get_current_object())
+    emit('ready_accepted', {'round_id': game.current_round_id})

@@ -13,11 +13,17 @@
         <div class="board-chips">
             <span class="board-chip">
                 <span class="chip-label">Round</span>
-                <span class="chip-num" id="board-round-num">—</span>
+                <span class="chip-num">
+                    <span id="board-round-num">—</span><span id="board-round-of" class="chip-of" hidden> / <span id="board-round-total">—</span></span>
+                </span>
             </span>
             <span class="board-chip">
                 <span class="chip-label">Phase</span>
                 <span class="chip-text" id="board-phase">Waiting</span>
+            </span>
+            <span class="board-chip board-chip-auto" id="board-autohost-chip" hidden>
+                <svg class="icon"><use href="/static/images/sprite.svg#i-sparkle"/></svg>
+                <span class="chip-text">Auto-Host</span>
             </span>
         </div>
     </header>

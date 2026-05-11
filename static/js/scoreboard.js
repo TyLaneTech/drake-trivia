@@ -13,6 +13,9 @@
     const ui = {
         sub: document.getElementById('board-sub'),
         roundNum: document.getElementById('board-round-num'),
+        roundOfWrap: document.getElementById('board-round-of'),
+        roundTotal: document.getElementById('board-round-total'),
+        autohostChip: document.getElementById('board-autohost-chip'),
         phase: document.getElementById('board-phase'),
         statusText: document.getElementById('board-status-text'),
 
@@ -216,17 +219,40 @@
         showStage('finale');
     };
 
+    const renderHeaderChips = (game, round) => {
+        if (!game) {
+            if (ui.roundOfWrap) ui.roundOfWrap.hidden = true;
+            if (ui.autohostChip) ui.autohostChip.hidden = true;
+            return;
+        }
+        // Round "X of N" — only show /N when the host configured a target count
+        if (ui.roundOfWrap) {
+            if (game.target_question_count) {
+                ui.roundOfWrap.hidden = false;
+                ui.roundTotal.textContent = game.target_question_count;
+            } else {
+                ui.roundOfWrap.hidden = true;
+            }
+        }
+        if (ui.autohostChip) ui.autohostChip.hidden = !game.auto_host;
+        if (ui.roundNum) {
+            ui.roundNum.textContent = round ? round.sequence : (game.rounds_played || 0);
+        }
+    };
+
     const handleState = (payload) => {
         if (!payload || !payload.game) {
             setPhase('Standby');
             ui.statusText.textContent = 'No game running.';
             renderLeaderboard([]);
+            renderHeaderChips(null, null);
             showStage('waiting');
             return;
         }
         if (payload.game.state === 'ended') return renderFinale(payload);
         const phase = payload.game.phase;
         renderLeaderboard(payload.leaderboard);
+        renderHeaderChips(payload.game, payload.round);
 
         if (!payload.round || phase === 'waiting') {
             setPhase('Standby');
@@ -235,7 +261,6 @@
             showStage('waiting');
             return;
         }
-        if (ui.roundNum) ui.roundNum.textContent = payload.round.sequence;
         if (phase === 'asking') renderAsking(payload.round, payload.total_teams);
         else if (phase === 'locked') { setPhase('Locked'); showStage('locked'); stopTimer(); }
         else if (phase === 'revealed') renderRevealed(payload.round);

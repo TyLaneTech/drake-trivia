@@ -17,6 +17,10 @@
         myScore: document.getElementById('my-score'),
         totalTeams: document.getElementById('total-teams'),
 
+        roundOfStrip: document.getElementById('round-of-strip'),
+        roundOfNow: document.getElementById('round-of-now'),
+        roundOfTotal: document.getElementById('round-of-total'),
+
         askCategory: document.getElementById('ask-category'),
         askDifficulty: document.getElementById('ask-difficulty'),
         askPoints: document.getElementById('ask-points'),
@@ -40,15 +44,26 @@
         revealDelta: document.getElementById('reveal-score-delta'),
         revealTotal: document.getElementById('reveal-score-total'),
 
+        readyBlock: document.getElementById('ready-block'),
+        btnReady: document.getElementById('btn-ready'),
+        readyConfirmed: document.getElementById('ready-confirmed'),
+        readyWaiting: document.getElementById('ready-waiting'),
+        readyWaitingList: document.getElementById('ready-waiting-list'),
+        readyCountdown: document.getElementById('ready-countdown'),
+        readyCountdownNum: document.getElementById('ready-countdown-num'),
+
         finaleLeader: document.getElementById('finale-leaderboard'),
         conn: document.getElementById('connection-status'),
     };
 
     let me = null;
     let currentRound = null;
+    let currentGame = null;
     let mySubmittedAnswer = null;
     let timerInterval = null;
     let lastTotalScore = 0;
+    let myReadyRoundId = null;
+    let readyCountdownInterval = null;
 
     /* ---------- Helpers ---------- */
     const showState = (key) => {
@@ -96,10 +111,93 @@
         lastTotalScore = mine.score;
     };
 
+    const renderRoundOf = () => {
+        if (!currentGame || !currentGame.target_question_count) {
+            ui.roundOfStrip.hidden = true;
+            return;
+        }
+        ui.roundOfStrip.hidden = false;
+        const seq = currentRound ? currentRound.sequence : (currentGame.rounds_played || 0) + 1;
+        ui.roundOfNow.textContent = seq;
+        ui.roundOfTotal.textContent = currentGame.target_question_count;
+    };
+
+    const stopReadyCountdown = () => {
+        if (readyCountdownInterval) { clearInterval(readyCountdownInterval); readyCountdownInterval = null; }
+        ui.readyCountdown.hidden = true;
+    };
+
+    const renderReadyBlock = (round, pending) => {
+        // Only show during reveal in auto-host mode.
+        if (!currentGame || !currentGame.auto_host || !round || round.phase !== 'revealed') {
+            ui.readyBlock.hidden = true;
+            stopReadyCountdown();
+            return;
+        }
+        ui.readyBlock.hidden = false;
+        const myTeamId = me && me.team_id;
+        const iAmPending = !!(pending || []).find(p => p.team_id === myTeamId);
+        const iAmReady = myReadyRoundId === round.round_id || !iAmPending;
+        if (iAmReady) {
+            ui.btnReady.hidden = true;
+            ui.readyConfirmed.hidden = false;
+        } else {
+            ui.btnReady.hidden = false;
+            ui.btnReady.disabled = false;
+            ui.readyConfirmed.hidden = true;
+        }
+        // Waiting-on list (everyone still pending, including me if I haven't tapped yet)
+        const others = (pending || []).filter(p => p.team_id !== myTeamId);
+        if (others.length) {
+            ui.readyWaiting.hidden = false;
+            ui.readyWaitingList.innerHTML = others.map(p => `
+                <li>
+                    <span class="ready-team-icon" style="color: ${p.color || 'var(--accent)'}">${window.dt.icon(p.emoji || 'target')}</span>
+                    <span class="ready-team-name">${escapeHtml(p.team_name)}</span>
+                </li>
+            `).join('');
+        } else {
+            ui.readyWaiting.hidden = true;
+            ui.readyWaitingList.innerHTML = '';
+        }
+        // Countdown if the host configured an auto_next_delay
+        const delay = currentGame.auto_next_delay_s;
+        if (delay && round.revealed_at) {
+            const revealedAt = new Date(round.revealed_at).getTime();
+            const tick = () => {
+                const remaining = Math.max(0, Math.ceil(delay - (Date.now() - revealedAt) / 1000));
+                ui.readyCountdownNum.textContent = `${remaining}s`;
+                if (remaining <= 0) stopReadyCountdown();
+            };
+            stopReadyCountdown();
+            ui.readyCountdown.hidden = false;
+            tick();
+            readyCountdownInterval = setInterval(tick, 250);
+        } else {
+            stopReadyCountdown();
+        }
+    };
+
+    if (ui.btnReady) {
+        ui.btnReady.addEventListener('click', () => {
+            if (!currentRound) return;
+            myReadyRoundId = currentRound.round_id;
+            ui.btnReady.disabled = true;
+            ui.btnReady.hidden = true;
+            ui.readyConfirmed.hidden = false;
+            sock.emit('team_ready', { round_id: currentRound.round_id });
+        });
+    }
+
     /* ---------- Renderers per phase ---------- */
     const renderAsking = (round) => {
         currentRound = round;
         mySubmittedAnswer = null;
+        // New round → reset ready state and any reveal countdown
+        myReadyRoundId = null;
+        ui.readyBlock.hidden = true;
+        stopReadyCountdown();
+        renderRoundOf();
         const q = round.question;
         ui.askCategory.textContent = q.category;
         ui.askDifficulty.textContent = q.difficulty;
@@ -147,8 +245,9 @@
         }
     };
 
-    const renderRevealed = (round) => {
+    const renderRevealed = (round, pending) => {
         stopTimer();
+        currentRound = round;
         const q = round.question;
         const myAns = (round.answers || []).find(a => a.team_id === (me && me.team_id));
         const correctAnswerStr = String(q.correct_answer || '').split('|')[0];
@@ -191,6 +290,7 @@
         }
         ui.revealTotal.textContent = lastTotalScore;
         showState('revealed');
+        renderReadyBlock(round, pending);
     };
 
     const renderFinale = (payload) => {
@@ -267,26 +367,30 @@
         if (payload && payload.me) me = payload.me;
         if (!payload || !payload.game) {
             ui.myRankCard.hidden = true;
+            currentGame = null;
+            ui.roundOfStrip.hidden = true;
             showState('waiting');
             return;
         }
+        currentGame = payload.game;
         updateMyRankFromLeaderboard(payload.leaderboard);
         if (payload.game.state === 'ended') return renderFinale(payload);
 
         const phase = payload.game.phase;
         const round = payload.round;
-        if (phase === 'waiting' || !round) { showState('waiting'); stopTimer(); return; }
+        if (phase === 'waiting' || !round) { showState('waiting'); stopTimer(); ui.roundOfStrip.hidden = !(currentGame && currentGame.target_question_count); renderRoundOf(); return; }
         if (phase === 'asking') {
             // Only re-render if this is a different round than current
             if (!currentRound || round.round_id !== currentRound.round_id) renderAsking(round);
             else {
                 // Same round, maybe reconnected — keep UI but ensure timer is alive
+                renderRoundOf();
                 startTimer(round, round.question.time_limit_s);
             }
             return;
         }
         if (phase === 'locked') { renderLocked(); return; }
-        if (phase === 'revealed') { renderRevealed(round); return; }
+        if (phase === 'revealed') { renderRevealed(round, payload.pending_ready); return; }
     };
 
     const sock = connectSocket({
@@ -295,10 +399,18 @@
         state: handleState,
         question_start: (payload) => {
             currentRound = null; // force re-render
-            handleState({ game: { state: 'active', phase: 'asking' }, round: payload, me });
+            handleState({ game: currentGame || { state: 'active', phase: 'asking' }, round: payload, me });
         },
         round_locked: () => renderLocked(),
-        reveal: (round) => renderRevealed(round),
+        reveal: (round) => renderRevealed(round, []),
+        ready_update: (data) => {
+            // Re-render the waiting list / counted state if we're on the reveal screen.
+            if (!currentRound || currentRound.round_id !== data.round_id) return;
+            renderReadyBlock(currentRound, data.pending || []);
+        },
+        ready_accepted: (data) => {
+            myReadyRoundId = data.round_id;
+        },
         leaderboard: (payload) => updateMyRankFromLeaderboard(payload.leaderboard),
         finale: renderFinale,
         answer_accepted: (data) => {

@@ -126,6 +126,15 @@ class Game(db.Model):
     phase: Mapped[str] = mapped_column(String(20), default='waiting')  # waiting|asking|locked|revealed|finale
     # Optional category filter: when set, auto-pick draws only from this category.
     category_filter: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    # Auto-host: when on, the server progresses the game automatically.
+    auto_host: Mapped[bool] = mapped_column(Boolean, default=False)
+    # Total questions to play (None = unlimited).
+    target_question_count: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    # Seconds between lock and auto-reveal (when auto_host is on).
+    auto_reveal_delay_s: Mapped[int] = mapped_column(Integer, default=3)
+    # Seconds to wait on the reveal screen before auto-advancing (when auto_host
+    # is on). NULL = wait indefinitely until every team has clicked "ready".
+    auto_next_delay_s: Mapped[Optional[int]] = mapped_column(Integer, nullable=True, default=None)
     current_round_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey('rounds.id'), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     started_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
@@ -155,6 +164,9 @@ class GameParticipant(db.Model):
     team_id: Mapped[int] = mapped_column(Integer, ForeignKey('teams.id'), nullable=False)
     score: Mapped[int] = mapped_column(Integer, default=0)
     joined_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    # Tracks which round (if any) this team has clicked "Ready for next" on.
+    # Used in auto-host mode to fast-forward when all teams are ready.
+    ready_round_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
 
     game: Mapped[Game] = relationship(back_populates='participants', foreign_keys=[game_id])
     team: Mapped[Team] = relationship(back_populates='participations', foreign_keys=[team_id])

@@ -62,6 +62,19 @@
     font-weight: 600;
     color: var(--text);
 }
+.chip-of {
+    color: var(--text-3);
+    font-weight: 600;
+    font-size: 1rem;
+}
+.board-chip-auto {
+    align-items: center;
+    background: var(--accent-soft-glow);
+    border-color: var(--accent);
+    color: var(--accent);
+}
+.board-chip-auto .chip-text { color: var(--accent); font-size: 0.9rem; }
+.board-chip-auto .icon { width: 16px; height: 16px; }
 
 .board-stage { animation: fade-up 380ms cubic-bezier(.22, 1, .36, 1) both; }
 

@@ -25,6 +25,7 @@
     const els = {
         statePill: document.getElementById('game-state-pill'),
         meta: document.getElementById('game-meta'),
+        progressMeta: document.getElementById('game-progress-meta'),
         categorySelect: document.getElementById('game-category-select'),
         empty: document.getElementById('round-empty'),
         active: document.getElementById('round-active'),
@@ -39,6 +40,13 @@
         barLabel: document.getElementById('answers-bar-label'),
         leaderboard: document.getElementById('leaderboard-list'),
         manualAdjustBody: document.getElementById('manual-adjust-body'),
+        // Auto-host
+        ahToggle: document.getElementById('auto-host-toggle'),
+        ahConfig: document.getElementById('auto-host-config'),
+        ahTarget: document.getElementById('ah-target-count'),
+        ahReveal: document.getElementById('ah-reveal-delay'),
+        ahNext: document.getElementById('ah-next-delay'),
+        ahSave: document.getElementById('ah-save'),
     };
 
     const renderState = (payload) => {
@@ -47,6 +55,7 @@
         if (!g) {
             els.statePill.textContent = 'No game';
             els.meta.textContent = 'Start a new game from the Settings tab.';
+            els.progressMeta.textContent = '';
             els.empty.hidden = false;
             els.active.hidden = true;
             return;
@@ -54,7 +63,27 @@
         els.statePill.textContent = g.state === 'active' ? `${g.phase}` : g.state;
         const categoryLabel = g.category_filter ? ` · ${g.category_filter}` : '';
         els.meta.textContent = `Game #${g.id} · ${payload.total_teams} team${payload.total_teams === 1 ? '' : 's'}${categoryLabel}`;
+        // Progress + auto-host indicator
+        const played = g.rounds_played || 0;
+        const target = g.target_question_count;
+        const progress = target ? `Round ${played} of ${target}` : `${played} rounds played`;
+        const autoBadge = g.auto_host ? ' · Auto-Host on' : '';
+        els.progressMeta.textContent = `${progress}${autoBadge}`;
         if (els.categorySelect) els.categorySelect.value = g.category_filter || '';
+        // Sync auto-host controls with server truth
+        if (els.ahToggle && document.activeElement !== els.ahToggle) {
+            els.ahToggle.checked = !!g.auto_host;
+            els.ahConfig.hidden = !g.auto_host;
+        }
+        if (els.ahTarget && document.activeElement !== els.ahTarget) {
+            els.ahTarget.value = target != null ? target : '';
+        }
+        if (els.ahReveal && document.activeElement !== els.ahReveal) {
+            els.ahReveal.value = g.auto_reveal_delay_s != null ? g.auto_reveal_delay_s : 3;
+        }
+        if (els.ahNext && document.activeElement !== els.ahNext) {
+            els.ahNext.value = g.auto_next_delay_s != null ? g.auto_next_delay_s : '';
+        }
 
         if (!payload.round) {
             els.empty.hidden = false;
@@ -238,10 +267,32 @@
                 round: data.current_round,
                 leaderboard: data.leaderboard,
                 total_teams: (data.leaderboard || []).length,
+                pending_ready: data.pending_ready || [],
             };
             renderState(payload);
         } catch (e) { console.error(e); }
     };
+
+    /* -------------------- Auto-host config -------------------- */
+    const saveAutoHost = async () => {
+        const body = {
+            auto_host: els.ahToggle.checked,
+            target_question_count: els.ahTarget.value === '' ? null : Number(els.ahTarget.value),
+            auto_reveal_delay_s: Number(els.ahReveal.value) || 3,
+            auto_next_delay_s: els.ahNext.value === '' ? null : Number(els.ahNext.value),
+        };
+        try {
+            await fetchJSON('/api/admin/game/auto_host', { method: 'POST', body });
+            refreshGame();
+        } catch (err) { alert(err.message); }
+    };
+    if (els.ahToggle) {
+        els.ahToggle.addEventListener('change', () => {
+            els.ahConfig.hidden = !els.ahToggle.checked;
+            saveAutoHost();
+        });
+    }
+    if (els.ahSave) els.ahSave.addEventListener('click', saveAutoHost);
 
     /* -------------------- Questions tab -------------------- */
     let allQuestions = [];

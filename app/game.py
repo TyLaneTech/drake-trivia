@@ -116,6 +116,54 @@ def answer_count(round_: Round) -> int:
     ) or 0
 
 
+def rounds_played(game: Game) -> int:
+    return db.session.scalar(
+        select(db.func.count(Round.id)).where(Round.game_id == game.id)
+    ) or 0
+
+
+def pending_ready_teams(game: Game) -> list[dict]:
+    """Teams that haven't pressed Ready for the current round."""
+    if not game.current_round_id:
+        return []
+    rows = db.session.execute(
+        select(GameParticipant, Team)
+        .join(Team, Team.id == GameParticipant.team_id)
+        .where(
+            GameParticipant.game_id == game.id,
+            db.or_(
+                GameParticipant.ready_round_id != game.current_round_id,
+                GameParticipant.ready_round_id.is_(None),
+            ),
+        )
+        .order_by(Team.name.asc())
+    ).all()
+    return [
+        {
+            'team_id': t.id,
+            'team_name': t.name,
+            'color': t.color,
+            'emoji': t.emoji,
+        }
+        for _, t in rows
+    ]
+
+
+def all_teams_ready(game: Game) -> bool:
+    if not game.current_round_id:
+        return False
+    total = total_teams_in_game(game)
+    if total == 0:
+        return False
+    ready = db.session.scalar(
+        select(db.func.count(GameParticipant.id)).where(
+            GameParticipant.game_id == game.id,
+            GameParticipant.ready_round_id == game.current_round_id,
+        )
+    ) or 0
+    return ready >= total
+
+
 # ---------- snapshots / broadcasts ----------
 
 def game_snapshot(game: Game, *, include_correct: bool = False) -> dict:
@@ -126,10 +174,17 @@ def game_snapshot(game: Game, *, include_correct: bool = False) -> dict:
             'name': game.name,
             'state': game.state,
             'phase': game.phase,
+            'auto_host': bool(game.auto_host),
+            'target_question_count': game.target_question_count,
+            'auto_reveal_delay_s': game.auto_reveal_delay_s,
+            'auto_next_delay_s': game.auto_next_delay_s,
+            'category_filter': game.category_filter,
+            'rounds_played': rounds_played(game),
         },
         'round': None,
         'leaderboard': leaderboard_for(game),
         'total_teams': total_teams_in_game(game),
+        'pending_ready': pending_ready_teams(game),
     }
     if game.current_round_id:
         r = db.session.get(Round, game.current_round_id)
@@ -193,6 +248,14 @@ def broadcast_answer_count(round_: Round) -> None:
     })
 
 
+def broadcast_ready(game: Game) -> None:
+    socketio.emit('ready_update', {
+        'round_id': game.current_round_id,
+        'pending': pending_ready_teams(game),
+        'total_teams': total_teams_in_game(game),
+    })
+
+
 # ---------- transitions ----------
 
 def start_game(game: Game) -> None:
@@ -242,18 +305,22 @@ def start_round(game: Game, question_id: int, app) -> Round:
     return round_
 
 
-def lock_round(round_: Round) -> None:
+def lock_round(round_: Round, app=None) -> None:
     if round_.phase != 'asking':
         return
     round_.phase = 'locked'
     round_.locked_at = datetime.utcnow()
     round_.game.phase = 'locked'
+    game = round_.game
     db.session.commit()
     socketio.emit('round_locked', {'round_id': round_.id})
-    broadcast_state(round_.game)
+    broadcast_state(game)
+    # Auto-reveal once the host configured a delay
+    if game.auto_host and app is not None:
+        schedule_auto_action(app, game.id, 'reveal', game.auto_reveal_delay_s)
 
 
-def reveal_round(round_: Round) -> None:
+def reveal_round(round_: Round, app=None) -> None:
     if round_.phase not in {'asking', 'locked'}:
         return
     if round_.phase == 'asking':
@@ -264,9 +331,16 @@ def reveal_round(round_: Round) -> None:
     round_.phase = 'revealed'
     round_.revealed_at = datetime.utcnow()
     round_.game.phase = 'revealed'
+    game = round_.game
     db.session.commit()
     socketio.emit('reveal', round_snapshot(round_, include_correct=True))
-    broadcast_leaderboard(round_.game)
+    broadcast_leaderboard(game)
+    # Refresh full state (resets pending-ready list now we're in reveal)
+    broadcast_state(game)
+    if game.auto_host and app is not None and game.auto_next_delay_s is not None:
+        # Only schedule a timer if a non-null delay is configured. With null,
+        # the round only advances when every team has clicked Ready.
+        schedule_auto_action(app, game.id, 'next', game.auto_next_delay_s, round_id=round_.id)
 
 
 def score_round(round_: Round) -> None:
@@ -359,7 +433,7 @@ def compute_awards(game: Game) -> list[dict]:
     return awards
 
 
-# ---------- auto-lock timer ----------
+# ---------- auto-host scheduling ----------
 
 def schedule_auto_lock(app, round_id: int, delay_s: int) -> None:
     def _task():
@@ -368,8 +442,90 @@ def schedule_auto_lock(app, round_id: int, delay_s: int) -> None:
             r = db.session.get(Round, round_id)
             if r is None or r.phase != 'asking':
                 return
-            lock_round(r)
+            # Pass the app so this auto-lock also chains into auto-reveal when
+            # auto-host is on.
+            lock_round(r, app=app)
     eventlet.spawn(_task)
+
+
+def schedule_auto_action(app, game_id: int, action: str, delay_s: int,
+                          *, round_id: int | None = None) -> None:
+    """Fire `action` on the active game after `delay_s` seconds.
+
+    Each task re-checks the game state at fire time and no-ops if anything has
+    moved on (admin advanced manually, auto-host disabled, game ended, etc.).
+    Pass `round_id` to bind the task to a specific round — used by 'next' so a
+    stale timer can't double-advance once the host has already moved on.
+    """
+    def _task():
+        eventlet.sleep(max(1, int(delay_s)))
+        with app.app_context():
+            game = db.session.get(Game, game_id)
+            if game is None or game.state != 'active' or not game.auto_host:
+                return
+            if action == 'reveal':
+                r = db.session.get(Round, game.current_round_id) if game.current_round_id else None
+                if r is None or r.phase != 'locked':
+                    return
+                reveal_round(r, app=app)
+            elif action == 'next':
+                if round_id is not None and game.current_round_id != round_id:
+                    return  # round changed under us
+                if game.phase != 'revealed':
+                    return
+                advance_to_next_or_end(game, app)
+    eventlet.spawn(_task)
+
+
+def _auto_pick_next_question(game: Game) -> Question | None:
+    used_ids = set(db.session.scalars(
+        select(Round.question_id).where(Round.game_id == game.id)
+    ).all())
+    q_select = select(Question)
+    if used_ids:
+        q_select = q_select.where(~Question.id.in_(used_ids))
+    if game.category_filter:
+        q_select = q_select.where(Question.category == game.category_filter)
+    return db.session.scalar(q_select.order_by(db.func.random()))
+
+
+def advance_to_next_or_end(game: Game, app) -> None:
+    """End the game if the target question count is reached; otherwise auto-pick
+    the next question. Safe to call repeatedly — caller is expected to have
+    already verified the game is in the revealed phase and auto-host is on."""
+    target = game.target_question_count
+    played = rounds_played(game)
+    if target is not None and played >= int(target):
+        end_game(game)
+        return
+    q = _auto_pick_next_question(game)
+    if q is None:
+        # Out of questions — end the game instead of getting stuck.
+        end_game(game)
+        return
+    try:
+        start_round(game, q.id, app)
+    except RuntimeError:
+        # Race condition (already asking) — ignore
+        return
+
+
+# ---------- ready-up ----------
+
+def mark_ready(game: Game, team: Team, app) -> None:
+    """Record that `team` is ready for the next round, and advance immediately
+    in auto-host mode if every team is now ready."""
+    if not game.current_round_id or game.phase != 'revealed':
+        return
+    gp = ensure_participant(game, team)
+    if gp.ready_round_id == game.current_round_id:
+        broadcast_ready(game)
+        return
+    gp.ready_round_id = game.current_round_id
+    db.session.commit()
+    broadcast_ready(game)
+    if game.auto_host and all_teams_ready(game):
+        advance_to_next_or_end(game, app)
 
 
 # ---------- answer submission ----------

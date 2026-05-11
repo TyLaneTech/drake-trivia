@@ -205,6 +205,7 @@ def delete_team(tid):
 @admin_bp.get('/api/admin/game')
 @admin_required
 def game_status():
+    from .game import pending_ready_teams
     game = get_active_game()
     if game is None:
         return jsonify({'state': 'none'})
@@ -214,12 +215,17 @@ def game_status():
         'state': game.state,
         'phase': game.phase,
         'category_filter': game.category_filter,
+        'auto_host': bool(game.auto_host),
+        'target_question_count': game.target_question_count,
+        'auto_reveal_delay_s': game.auto_reveal_delay_s,
+        'auto_next_delay_s': game.auto_next_delay_s,
         'started_at': game.started_at.isoformat() + 'Z' if game.started_at else None,
         'leaderboard': leaderboard_for(game),
         'current_round': None,
         'rounds_played': db.session.scalar(
             select(db.func.count(Round.id)).where(Round.game_id == game.id)
         ) or 0,
+        'pending_ready': pending_ready_teams(game),
     }
     if game.current_round_id:
         r = db.session.get(Round, game.current_round_id)
@@ -254,6 +260,7 @@ def new_game():
     game.phase = 'waiting'
     cat = (data.get('category_filter') or '').strip()
     game.category_filter = cat or None
+    _apply_auto_host_payload(game, data)
     db.session.commit()
     broadcast_state(game)
     return jsonify({'ok': True, 'game_id': game.id, 'category_filter': game.category_filter})
@@ -271,6 +278,60 @@ def update_game_category():
     game.category_filter = cat or None
     db.session.commit()
     return jsonify({'ok': True, 'category_filter': game.category_filter})
+
+
+@admin_bp.post('/api/admin/game/auto_host')
+@admin_required
+def update_auto_host():
+    """Update auto-host config on the active game without restarting it."""
+    data = request.get_json(silent=True) or {}
+    game = get_active_game()
+    if game is None:
+        return jsonify({'error': 'No active game'}), 400
+    _apply_auto_host_payload(game, data)
+    db.session.commit()
+    broadcast_state(game)
+    return jsonify({
+        'ok': True,
+        'auto_host': bool(game.auto_host),
+        'target_question_count': game.target_question_count,
+        'auto_reveal_delay_s': game.auto_reveal_delay_s,
+        'auto_next_delay_s': game.auto_next_delay_s,
+    })
+
+
+def _apply_auto_host_payload(game: Game, data: dict) -> None:
+    """Mutate `game` with auto-host fields from `data` if present.
+
+    Sentinel `None` for `target_question_count` / `auto_next_delay_s` means
+    'unlimited' / 'wait for every team', so a *missing* key leaves the value
+    alone but an explicit null clears it.
+    """
+    if 'auto_host' in data:
+        game.auto_host = bool(data.get('auto_host'))
+    if 'target_question_count' in data:
+        val = data.get('target_question_count')
+        if val in (None, '', 0, '0'):
+            game.target_question_count = None
+        else:
+            try:
+                game.target_question_count = max(1, int(val))
+            except (TypeError, ValueError):
+                pass
+    if 'auto_reveal_delay_s' in data:
+        try:
+            game.auto_reveal_delay_s = max(1, int(data.get('auto_reveal_delay_s')))
+        except (TypeError, ValueError):
+            pass
+    if 'auto_next_delay_s' in data:
+        val = data.get('auto_next_delay_s')
+        if val in (None, '', 0, '0'):
+            game.auto_next_delay_s = None
+        else:
+            try:
+                game.auto_next_delay_s = max(1, int(val))
+            except (TypeError, ValueError):
+                pass
 
 
 @admin_bp.post('/api/admin/game/start_round')
@@ -315,7 +376,7 @@ def lock_round_route():
     r = db.session.get(Round, game.current_round_id)
     if r is None:
         return jsonify({'error': 'Round not found'}), 404
-    lock_round(r)
+    lock_round(r, app=current_app._get_current_object())
     return jsonify({'ok': True})
 
 
@@ -328,7 +389,7 @@ def reveal_round_route():
     r = db.session.get(Round, game.current_round_id)
     if r is None:
         return jsonify({'error': 'Round not found'}), 404
-    reveal_round(r)
+    reveal_round(r, app=current_app._get_current_object())
     return jsonify({'ok': True})
 
 

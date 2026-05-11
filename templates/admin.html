@@ -19,6 +19,7 @@
                     <div class="status-row">
                         <span class="status-pill" id="game-state-pill">Loading…</span>
                         <span class="status-meta" id="game-meta"></span>
+                        <span class="status-meta" id="game-progress-meta"></span>
                     </div>
                     <div class="game-config-row">
                         <label for="game-category-select" class="game-config-label">Category</label>
@@ -26,6 +27,37 @@
                             <option value="">All categories (mixed)</option>
                         </select>
                         <span class="game-config-hint">Auto-pick draws random questions from this category.</span>
+                    </div>
+
+                    <div class="auto-host-block">
+                        <div class="auto-host-head">
+                            <label class="switch">
+                                <input type="checkbox" id="auto-host-toggle">
+                                <span class="switch-slot"><span class="switch-thumb"></span></span>
+                                <span class="switch-label">
+                                    <span class="switch-title">Auto-Host</span>
+                                    <span class="switch-sub">Lock when everyone answers, auto-reveal, auto-advance.</span>
+                                </span>
+                            </label>
+                        </div>
+                        <div class="auto-host-config" id="auto-host-config" hidden>
+                            <label class="ahf">
+                                <span class="ahf-label">Questions per game</span>
+                                <input type="number" id="ah-target-count" min="0" placeholder="Unlimited">
+                                <span class="ahf-hint">Leave blank or 0 for no limit.</span>
+                            </label>
+                            <label class="ahf">
+                                <span class="ahf-label">Reveal delay</span>
+                                <div class="ahf-suffix"><input type="number" id="ah-reveal-delay" min="1" value="3"><span>s</span></div>
+                                <span class="ahf-hint">After all teams lock in.</span>
+                            </label>
+                            <label class="ahf">
+                                <span class="ahf-label">Next-question timeout</span>
+                                <div class="ahf-suffix"><input type="number" id="ah-next-delay" min="0" placeholder="∞"><span>s</span></div>
+                                <span class="ahf-hint">Blank or 0 = wait for every team to ready up.</span>
+                            </label>
+                            <button type="button" class="btn btn-ghost btn-sm" id="ah-save">Save auto-host settings</button>
+                        </div>
                     </div>
                 </div>
 

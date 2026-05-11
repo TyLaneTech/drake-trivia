@@ -33,6 +33,10 @@
 
     <!-- ASKING -->
     <section class="card play-card play-card-ask" id="state-asking" hidden>
+        <div class="round-of-strip" id="round-of-strip" hidden>
+            <span class="round-of-label">Round</span>
+            <span class="round-of-num"><span id="round-of-now">1</span> <span class="round-of-sep">of</span> <span id="round-of-total">—</span></span>
+        </div>
         <div class="ask-head">
             <div class="ask-tags">
                 <span class="tag tag-category" id="ask-category">Category</span>
@@ -107,6 +111,25 @@
             <div class="reveal-score-cell total">
                 <span class="cell-num" id="reveal-score-total">0</span>
                 <span class="cell-label">total</span>
+            </div>
+        </div>
+
+        <div class="ready-block" id="ready-block" hidden>
+            <button class="btn btn-ready" id="btn-ready" type="button">
+                <svg class="icon"><use href="/static/images/sprite.svg#i-arrow-right"/></svg>
+                <span>Ready for next</span>
+            </button>
+            <div class="ready-confirmed" id="ready-confirmed" hidden>
+                <svg class="icon"><use href="/static/images/sprite.svg#i-check"/></svg>
+                <span>You&rsquo;re ready</span>
+            </div>
+            <div class="ready-waiting" id="ready-waiting" hidden>
+                <span class="ready-waiting-label">Waiting on</span>
+                <ul class="ready-waiting-list" id="ready-waiting-list"></ul>
+            </div>
+            <div class="ready-countdown" id="ready-countdown" hidden>
+                <span class="ready-countdown-label">Auto-advance in</span>
+                <span class="ready-countdown-num" id="ready-countdown-num">--</span>
             </div>
         </div>
     </section>
