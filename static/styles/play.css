@@ -33,7 +33,11 @@
     font-style: italic;
     font-weight: 700;
     color: var(--ink);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
 }
+.stub-team .icon { width: 1.4em; height: 1.4em; }
 
 .play-card {
     width: 100%;
@@ -284,10 +288,13 @@
    ============================================================ */
 .lock-mark {
     text-align: center;
-    font-size: 3rem;
-    margin: 8px 0 6px;
+    margin: 12px 0 8px;
     animation: ticker-pulse 1.6s infinite;
+    color: var(--ink);
+    display: flex;
+    justify-content: center;
 }
+.lock-mark .icon { width: 72px; height: 72px; }
 
 /* ============================================================
    REVEALED
@@ -304,15 +311,14 @@
 .reveal-banner.correct { background: var(--forest); color: var(--paper-1); border-color: var(--forest); }
 .reveal-banner.wrong   { background: var(--ruby); color: var(--paper-1); border-color: var(--ruby); }
 .reveal-banner-icon {
-    font-size: 1.8rem;
-    width: 48px; height: 48px;
+    width: 52px; height: 52px;
     display: flex;
     align-items: center;
     justify-content: center;
     border: 2px solid currentColor;
-    border-radius: 50%;
     flex-shrink: 0;
 }
+.reveal-banner-icon .icon { width: 32px; height: 32px; }
 .reveal-banner-text { display: flex; flex-direction: column; gap: 2px; }
 .reveal-headline {
     font-family: var(--font-display);

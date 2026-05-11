@@ -214,9 +214,15 @@
     transition: color var(--t);
 }
 .preview-emoji {
-    font-size: 2.6rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     line-height: 1;
+    color: var(--c, var(--ruby));
+    width: 60px;
+    height: 60px;
 }
+.preview-emoji .icon { width: 100%; height: 100%; }
 .preview-label {
     font-family: var(--font-body);
     font-size: 0.7rem;
