@@ -131,10 +131,17 @@
 }
 .timer-num {
     position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-family: var(--font-mono);
     font-weight: 700;
     font-size: 1.3rem;
     color: var(--text);
+    font-variant-numeric: tabular-nums;
+    overflow: hidden;
+    line-height: 1;
 }
 .ask-timer.warn .timer-ring-fg { stroke: var(--warning); filter: drop-shadow(0 0 6px rgba(251, 191, 36, 0.4)); }
 .ask-timer.warn .timer-num { color: var(--warning); }

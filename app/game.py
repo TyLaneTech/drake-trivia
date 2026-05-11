@@ -140,13 +140,17 @@ def game_snapshot(game: Game, *, include_correct: bool = False) -> dict:
 
 def round_snapshot(round_: Round, *, include_correct: bool = False) -> dict:
     q = round_.question
+    # Datetimes are stored as naive UTC. Append 'Z' so the client parses them
+    # as UTC instead of local time (which would offset the timer by the user's
+    # timezone — that's what produced the "18020 seconds left" bug).
+    _utc = lambda d: (d.isoformat() + 'Z') if d else None
     payload = {
         'round_id': round_.id,
         'sequence': round_.sequence,
         'phase': round_.phase,
-        'shown_at': round_.shown_at.isoformat() if round_.shown_at else None,
-        'locked_at': round_.locked_at.isoformat() if round_.locked_at else None,
-        'revealed_at': round_.revealed_at.isoformat() if round_.revealed_at else None,
+        'shown_at': _utc(round_.shown_at),
+        'locked_at': _utc(round_.locked_at),
+        'revealed_at': _utc(round_.revealed_at),
         'time_limit_s': q.time_limit_s,
         'answer_count': answer_count(round_),
         'question': q.to_player_dict(),

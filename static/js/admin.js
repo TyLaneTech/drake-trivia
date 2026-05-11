@@ -25,6 +25,7 @@
     const els = {
         statePill: document.getElementById('game-state-pill'),
         meta: document.getElementById('game-meta'),
+        categorySelect: document.getElementById('game-category-select'),
         empty: document.getElementById('round-empty'),
         active: document.getElementById('round-active'),
         category: document.getElementById('round-category'),
@@ -51,7 +52,9 @@
             return;
         }
         els.statePill.textContent = g.state === 'active' ? `${g.phase}` : g.state;
-        els.meta.textContent = `Game #${g.id} · ${payload.total_teams} team${payload.total_teams === 1 ? '' : 's'}`;
+        const categoryLabel = g.category_filter ? ` · ${g.category_filter}` : '';
+        els.meta.textContent = `Game #${g.id} · ${payload.total_teams} team${payload.total_teams === 1 ? '' : 's'}${categoryLabel}`;
+        if (els.categorySelect) els.categorySelect.value = g.category_filter || '';
 
         if (!payload.round) {
             els.empty.hidden = false;
@@ -162,6 +165,31 @@
         timerInterval = setInterval(tick, 250);
     };
 
+    /* -------------------- Category picker -------------------- */
+    const loadCategoriesIntoSelect = async () => {
+        if (!els.categorySelect) return;
+        try {
+            const cats = await fetchJSON('/api/admin/categories');
+            const cur = els.categorySelect.value;
+            els.categorySelect.innerHTML =
+                '<option value="">All categories (mixed)</option>' +
+                cats.map(c => `<option value="${escapeHtml(c.category)}">${escapeHtml(c.category)} (${c.count})</option>`).join('');
+            els.categorySelect.value = cur;
+        } catch (e) { console.error('Failed to load categories', e); }
+    };
+    if (els.categorySelect) {
+        els.categorySelect.addEventListener('change', async () => {
+            try {
+                await fetchJSON('/api/admin/game/category', {
+                    method: 'POST',
+                    body: { category_filter: els.categorySelect.value },
+                });
+                refreshGame();
+            } catch (err) { alert(err.message); }
+        });
+        loadCategoriesIntoSelect();
+    }
+
     /* -------------------- Control buttons -------------------- */
     document.getElementById('btn-start-round').addEventListener('click', async (e) => {
         const btn = e.currentTarget;
@@ -225,6 +253,7 @@
             allQuestions = await fetchJSON('/api/admin/questions');
             populateCategoryFilter();
             renderQuestions();
+            loadCategoriesIntoSelect();
         } catch (e) {
             tbody.innerHTML = `<tr><td colspan="8" class="empty">Failed to load: ${e.message}</td></tr>`;
         }

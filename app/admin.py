@@ -213,7 +213,8 @@ def game_status():
         'name': game.name,
         'state': game.state,
         'phase': game.phase,
-        'started_at': game.started_at.isoformat() if game.started_at else None,
+        'category_filter': game.category_filter,
+        'started_at': game.started_at.isoformat() + 'Z' if game.started_at else None,
         'leaderboard': leaderboard_for(game),
         'current_round': None,
         'rounds_played': db.session.scalar(
@@ -227,20 +228,49 @@ def game_status():
     return jsonify(payload)
 
 
+@admin_bp.get('/api/admin/categories')
+@admin_required
+def list_categories():
+    """Distinct categories from the question bank, with counts."""
+    rows = db.session.execute(
+        select(Question.category, db.func.count(Question.id))
+        .group_by(Question.category)
+        .order_by(Question.category.asc())
+    ).all()
+    return jsonify([{'category': c, 'count': n} for c, n in rows])
+
+
 @admin_bp.post('/api/admin/game/new')
 @admin_required
 def new_game():
     """End any active game and create a fresh one in waiting."""
+    data = request.get_json(silent=True) or {}
     existing = get_active_game()
     if existing is not None:
         existing.state = 'ended'
         existing.ended_at = db.func.now()
         db.session.commit()
-    game = get_or_create_active_game(name=request.json.get('name') if request.is_json else 'Drake Trivia Night')
+    game = get_or_create_active_game(name=data.get('name') or 'Drake Trivia Night')
     game.phase = 'waiting'
+    cat = (data.get('category_filter') or '').strip()
+    game.category_filter = cat or None
     db.session.commit()
     broadcast_state(game)
-    return jsonify({'ok': True, 'game_id': game.id})
+    return jsonify({'ok': True, 'game_id': game.id, 'category_filter': game.category_filter})
+
+
+@admin_bp.post('/api/admin/game/category')
+@admin_required
+def update_game_category():
+    """Update the category filter on the active game without restarting it."""
+    data = request.get_json(silent=True) or {}
+    cat = (data.get('category_filter') or '').strip()
+    game = get_active_game()
+    if game is None:
+        return jsonify({'error': 'No active game'}), 400
+    game.category_filter = cat or None
+    db.session.commit()
+    return jsonify({'ok': True, 'category_filter': game.category_filter})
 
 
 @admin_bp.post('/api/admin/game/start_round')
@@ -250,16 +280,24 @@ def start_round_route():
     qid = data.get('question_id')
     game = get_or_create_active_game()
     if not qid:
-        # Auto-pick: next unused question for this game (oldest first)
+        # Auto-pick: random unused question, optionally filtered by the game's
+        # category (or one passed in on this call as an override).
         used_ids = set(db.session.scalars(
             select(Round.question_id).where(Round.game_id == game.id)
         ).all())
+        override_cat = (data.get('category') or '').strip()
+        cat = override_cat or game.category_filter
         q_select = select(Question)
         if used_ids:
             q_select = q_select.where(~Question.id.in_(used_ids))
-        candidate = db.session.scalar(q_select.order_by(Question.id.asc()))
+        if cat:
+            q_select = q_select.where(Question.category == cat)
+        # SQL random ordering: works on Postgres and SQLite alike.
+        candidate = db.session.scalar(q_select.order_by(db.func.random()))
         if candidate is None:
-            return jsonify({'error': 'All questions have been used — start a new game or add more'}), 400
+            msg = ('No more questions in this category — pick another or add more'
+                   if cat else 'All questions have been used — start a new game or add more')
+            return jsonify({'error': msg}), 400
         qid = candidate.id
     try:
         r = start_round(game, int(qid), current_app._get_current_object())

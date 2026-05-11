@@ -124,6 +124,8 @@ class Game(db.Model):
     name: Mapped[str] = mapped_column(String(128), default='Drake Trivia Night')
     state: Mapped[str] = mapped_column(String(20), default='pending')  # pending|active|ended
     phase: Mapped[str] = mapped_column(String(20), default='waiting')  # waiting|asking|locked|revealed|finale
+    # Optional category filter: when set, auto-pick draws only from this category.
+    category_filter: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
     current_round_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey('rounds.id'), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     started_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)

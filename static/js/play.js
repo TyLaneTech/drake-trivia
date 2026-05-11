@@ -107,10 +107,14 @@
         ui.askPoints.textContent = `+${q.points}`;
         ui.askQuestion.textContent = q.text;
 
+        // Reset both answer surfaces every round
         ui.choicesList.innerHTML = '';
+        ui.freeTextInput.value = '';
+        ui.freeTextInput.disabled = false;
         ui.freeTextForm.hidden = true;
         ui.answerArea.hidden = false;
         ui.answeredState.hidden = true;
+        ui.lockedAnswerText.textContent = '';
 
         if (q.type === 'multiple_choice' || q.type === 'true_false') {
             const opts = q.options || (q.type === 'true_false' ? ['True', 'False'] : []);
@@ -126,8 +130,6 @@
             });
         } else {
             ui.freeTextForm.hidden = false;
-            ui.freeTextInput.value = '';
-            ui.freeTextInput.disabled = false;
             setTimeout(() => ui.freeTextInput.focus(), 100);
         }
 
