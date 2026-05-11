@@ -1,7 +1,7 @@
 .scoreboard-body { background: var(--bg); }
 
 .board-shell {
-    min-height: 100vh;
+    flex: 1;
     display: grid;
     grid-template-rows: auto 1fr auto;
     padding: 24px clamp(20px, 4vw, 48px) 0;
@@ -22,20 +22,16 @@
     border-bottom: 1px solid var(--border);
     margin-bottom: 28px;
 }
-.board-brand { display: flex; align-items: center; gap: 16px; }
-.board-logo {
-    width: 56px;
-    height: 56px;
-    filter: drop-shadow(0 0 16px var(--accent-glow));
+.board-status-block {
+    flex: 1;
+    min-width: 0;
 }
-.board-title {
-    font-size: 1.8rem;
+.board-sub {
+    color: var(--text);
+    font-size: 1.6rem;
     font-weight: 700;
     letter-spacing: -0.02em;
-    color: var(--text);
-    margin-bottom: 2px;
 }
-.board-sub { color: var(--text-3); font-size: 0.95rem; font-weight: 500; }
 
 .board-chips { display: flex; gap: 10px; flex-wrap: wrap; }
 .board-chip {

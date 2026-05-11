@@ -2,18 +2,13 @@
 {% block title %}Scoreboard — Drake Trivia{% endblock %}
 {% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='styles/scoreboard.css') }}">{% endblock %}
 {% block body_class %}scoreboard-body{% endblock %}
-{% block header %}{% endblock %}
 
 {% block content %}
 <div class="board-shell">
 
     <header class="board-head">
-        <div class="board-brand">
-            <img src="{{ url_for('static', filename='images/d-logo.png') }}" alt="" class="board-logo">
-            <div class="board-brand-text">
-                <h1 class="board-title">Drake Trivia</h1>
-                <span class="board-sub" id="board-sub">Standby</span>
-            </div>
+        <div class="board-status-block">
+            <span class="board-sub" id="board-sub">Standby</span>
         </div>
         <div class="board-chips">
             <span class="board-chip">

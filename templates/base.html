@@ -25,23 +25,41 @@
             <img src="{{ url_for('static', filename='images/d-logo.png') }}" alt="" class="brand-logo">
             <span>Drake Trivia</span>
         </a>
-        <nav class="topbar-nav">
-            <a href="{{ url_for('board.scoreboard') }}" class="nav-link">Scoreboard</a>
-            {% if is_admin %}
-            <a href="{{ url_for('admin.dashboard') }}" class="nav-link">Admin</a>
+        <nav class="topbar-nav" aria-label="Primary">
+            {% if team_name %}
+            <a href="{{ url_for('play.play') }}" class="nav-link {% if request.endpoint == 'play.play' %}is-active{% endif %}">
+                <svg class="icon"><use href="/static/images/sprite.svg#i-play"/></svg>
+                <span>Play</span>
+            </a>
             {% endif %}
+            <a href="{{ url_for('board.scoreboard') }}" class="nav-link {% if request.endpoint == 'board.scoreboard' %}is-active{% endif %}">
+                <svg class="icon"><use href="/static/images/sprite.svg#i-trophy"/></svg>
+                <span>Scoreboard</span>
+            </a>
+            {% if is_admin %}
+            <a href="{{ url_for('admin.dashboard') }}" class="nav-link {% if request.endpoint == 'admin.dashboard' %}is-active{% endif %}">
+                <svg class="icon"><use href="/static/images/sprite.svg#i-sparkle"/></svg>
+                <span>Admin</span>
+            </a>
+            {% endif %}
+        </nav>
+        <div class="topbar-end">
             {% if team_name %}
                 <span class="me-chip">
-                    <svg class="icon" style="color: {{ session.get('team_color', '#8b1d2a') }}"><use href="/static/images/sprite.svg#i-{{ session.get('team_emoji', 'target') }}"/></svg>
-                    {{ team_name }}
+                    <svg class="icon" style="color: {{ session.get('team_color', '#ff6b4a') }}"><use href="/static/images/sprite.svg#i-{{ session.get('team_emoji', 'target') }}"/></svg>
+                    <span>{{ team_name }}</span>
                 </span>
                 <a href="{{ url_for('auth.logout') }}" class="nav-link nav-link-quiet">Sign out</a>
             {% elif is_admin %}
+                <span class="me-chip me-chip-admin">
+                    <svg class="icon"><use href="/static/images/sprite.svg#i-sparkle"/></svg>
+                    <span>Host</span>
+                </span>
                 <a href="{{ url_for('auth.logout') }}" class="nav-link nav-link-quiet">Sign out</a>
             {% else %}
-                <a href="{{ url_for('auth.admin_login') }}" class="nav-link nav-link-quiet">Admin</a>
+                <a href="{{ url_for('auth.admin_login') }}" class="nav-link nav-link-quiet">Host</a>
             {% endif %}
-        </nav>
+        </div>
     </header>
     {% endblock %}
 
