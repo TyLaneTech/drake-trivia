@@ -1,1 +1,0 @@
-/* static/js/scores.js */

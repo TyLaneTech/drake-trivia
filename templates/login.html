@@ -1,40 +1,67 @@
-<!-- templates/login.html -->
 {% extends "base.html" %}
+{% block title %}Sign in — Drake Trivia{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='styles/login.css') }}">{% endblock %}
+{% block body_class %}has-bg-gradient{% endblock %}
 
-{% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='styles/login.css') }}">
+{% block content %}
+<div class="login-shell">
+    <div class="login-card">
+        <img src="{{ url_for('static', filename='images/d-logo.png') }}" alt="" class="login-logo">
+        <h1 class="login-title">Drake Trivia</h1>
+        <p class="login-tagline">Pick a team name, claim a color, and get ready.</p>
+
+        {% if error %}<div class="login-error">{{ error }}</div>{% endif %}
+
+        <form method="post" class="login-form" id="login-form">
+            <label class="field">
+                <span class="field-label">Team name</span>
+                <input type="text" name="team_name" id="team-name-input" required maxlength="80"
+                       autocomplete="off" placeholder="e.g. The Klaytonics" autofocus>
+            </label>
+
+            <div class="field-row">
+                <label class="field field-tight">
+                    <span class="field-label">Emoji</span>
+                    <input type="text" name="emoji" id="emoji-input" value="🎯" maxlength="4" class="emoji-input">
+                </label>
+                <label class="field field-grow">
+                    <span class="field-label">Color</span>
+                    <input type="color" name="color" id="color-input" value="#d61f2b" class="color-input">
+                </label>
+            </div>
+
+            <div class="team-preview" id="team-preview">
+                <span class="team-preview-emoji" id="preview-emoji">🎯</span>
+                <span class="team-preview-name" id="preview-name">Your team name</span>
+            </div>
+
+            {% if existing_teams %}
+            <details class="existing-teams">
+                <summary>Rejoin an existing team</summary>
+                <ul>
+                    {% for t in existing_teams %}
+                    <li>
+                        <button type="button" class="ghost-btn" data-name="{{ t.name }}" data-color="{{ t.color }}" data-emoji="{{ t.emoji }}">
+                            <span style="color: {{ t.color }}">{{ t.emoji }}</span> {{ t.name }}
+                        </button>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </details>
+            {% endif %}
+
+            <button type="submit" class="primary-btn login-btn">Enter the trivia hall →</button>
+        </form>
+
+        <div class="login-foot">
+            <a href="{{ url_for('board.scoreboard') }}">Open the big-screen scoreboard →</a>
+            <span class="dot">·</span>
+            <a href="{{ url_for('auth.admin_login') }}">Admin login</a>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
 <script src="{{ url_for('static', filename='js/login.js') }}"></script>
-{% endblock %}
-
-{% block title %}Login{% endblock %}
-
-{% block content %}
-<div class="login-container">
-    <div class="login-card">
-        <img src="{{ url_for('static', filename='images/d-logo.png') }}" alt="Drake Trivia Logo" class="login-logo">
-        <h1 class="login-title">Drake Trivia</h1>
-
-        <!-- Team Login Form -->
-        <form id="team-login-form" class="login-form">
-            <select id="team-select" name="team_name" class="team-select" required>
-                <option value="" disabled selected>Select Your Team</option>
-                <option value="Klay & The Baby Oven">Klay & The Baby Oven</option>
-                <option value="Mal & Shorty">Mal & Shorty</option>
-                <option value="K-Swag & Chester">K-Swag & Chester</option>
-                <option value="Delanie & The Claw">Delanie & The Claw</option>
-                <option value="Julie & No-Neck">Julie & No-Neck</option>
-            </select>
-
-            <button type="submit" class="login-button">Enter Game</button>
-        </form>
-
-        <!-- Admin Login Link -->
-        <div class="admin-link">
-            <a href="{{ url_for('admin_login') }}" class="admin-login-link">Admin Login</a>
-        </div>
-    </div>
-</div>
 {% endblock %}

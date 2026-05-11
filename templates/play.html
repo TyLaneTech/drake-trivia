@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}Play — Drake Trivia{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='styles/play.css') }}">{% endblock %}
+{% block body_class %}has-bg-gradient{% endblock %}
+
+{% block content %}
+<div class="play-shell">
+
+    <div class="play-card play-card-state" id="state-waiting">
+        <div class="pulse-dot"></div>
+        <h1>Get ready, <span class="team-name-inline" id="my-team-name">{{ team_name }}</span>!</h1>
+        <p class="hint">The host hasn't started the next question yet. Stay sharp. ⚡</p>
+        <div class="my-rank-card" id="my-rank-card" hidden>
+            <div class="rank-tile" id="rank-tile">—</div>
+            <div class="rank-label">
+                <div class="rank-num"><span id="my-score">0</span> pts</div>
+                <div class="rank-small">Rank <span id="my-rank">—</span> of <span id="total-teams">—</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="play-card play-card-state" id="state-asking" hidden>
+        <div class="ask-head">
+            <div class="ask-tags">
+                <span class="tag" id="ask-category">Category</span>
+                <span class="tag tag-difficulty" id="ask-difficulty">medium</span>
+                <span class="tag tag-points" id="ask-points">+5</span>
+            </div>
+            <div class="ask-timer" id="ask-timer">
+                <svg viewBox="0 0 40 40" class="timer-ring">
+                    <circle class="timer-ring-bg" cx="20" cy="20" r="18"/>
+                    <circle class="timer-ring-fg" cx="20" cy="20" r="18" id="timer-ring-fg"/>
+                </svg>
+                <span class="timer-num" id="timer-num">--</span>
+            </div>
+        </div>
+        <h1 class="ask-question" id="ask-question">Question</h1>
+
+        <div class="answer-area" id="answer-area">
+            <ul class="choices" id="choices-list"></ul>
+
+            <form class="free-text-form" id="free-text-form" hidden>
+                <input type="text" id="free-text-input" placeholder="Your answer…" autocomplete="off">
+                <button type="submit" class="primary-btn">Submit</button>
+            </form>
+        </div>
+
+        <div class="answered-state" id="answered-state" hidden>
+            <div class="answered-tick">✓</div>
+            <div class="answered-text">
+                <strong>Locked in:</strong>
+                <span id="locked-answer-text"></span>
+            </div>
+            <p class="hint">Waiting for the host to reveal…</p>
+        </div>
+    </div>
+
+    <div class="play-card play-card-state" id="state-locked" hidden>
+        <div class="pulse-dot pulse-dot-yellow"></div>
+        <h1>Answers locked 🔒</h1>
+        <p class="hint">Holding for the reveal…</p>
+    </div>
+
+    <div class="play-card play-card-state" id="state-revealed" hidden>
+        <div class="reveal-result" id="reveal-result">
+            <div class="reveal-icon" id="reveal-icon">—</div>
+            <div class="reveal-text">
+                <h1 id="reveal-headline">Hmm</h1>
+                <p id="reveal-sub">The correct answer was…</p>
+            </div>
+        </div>
+        <div class="reveal-answer-pill" id="reveal-answer-pill">—</div>
+        <p class="reveal-explanation" id="reveal-explanation" hidden></p>
+        <div class="reveal-score" id="reveal-score">
+            <span class="reveal-score-delta" id="reveal-score-delta">+0</span>
+            <span class="reveal-score-total">Total: <strong id="reveal-score-total">0</strong></span>
+        </div>
+    </div>
+
+    <div class="play-card play-card-state play-card-state-finale" id="state-finale" hidden>
+        <h1>🏆 Game over!</h1>
+        <p class="hint">Final standings on the big screen.</p>
+        <ol class="mini-leaderboard" id="finale-leaderboard"></ol>
+    </div>
+
+    <footer class="play-foot">
+        <span id="connection-status" class="conn-status conn-status-off">offline</span>
+        <span class="dot">·</span>
+        <a href="{{ url_for('board.scoreboard') }}" target="_blank">View scoreboard ↗</a>
+    </footer>
+</div>
+
+<audio id="sfx-correct" preload="auto"></audio>
+<audio id="sfx-wrong" preload="auto"></audio>
+<audio id="sfx-tick" preload="auto"></audio>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/play.js') }}"></script>
+{% endblock %}

@@ -1,205 +1,103 @@
-/* static/styles/login.css */
-
-.login-container {
+.login-shell {
+    flex: 1;
     display: flex;
-    justify-content: center;
     align-items: center;
-    min-height: calc(100vh - 2rem);
-    padding: var(--spacing-md);
+    justify-content: center;
+    padding: 32px 20px;
 }
-
 .login-card {
-    background-color: var(--bg-secondary);
-    border-radius: var(--radius-lg);
-    padding: var(--spacing-xl);
+    background: var(--bg-glass);
+    border: 1px solid var(--line);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: var(--radius-xl);
+    padding: 40px 32px;
+    max-width: 480px;
     width: 100%;
-    max-width: 400px;
-    box-shadow: var(--shadow-lg);
-    text-align: center;
+    box-shadow: var(--shadow-3);
+    animation: slide-up 0.5s ease both;
 }
-
 .login-logo {
-    width: 120px;
-    height: auto;
-    margin-bottom: var(--spacing-lg);
+    width: 86px;
+    height: 86px;
+    object-fit: contain;
+    margin: 0 auto 16px;
+    filter: drop-shadow(0 6px 16px rgba(255, 45, 85, 0.5));
 }
-
 .login-title {
-    color: var(--text-primary);
-    margin-bottom: var(--spacing-xl);
-    font-size: 2rem;
+    font-family: var(--font-display);
+    font-size: 2.4rem;
+    text-align: center;
+    margin-bottom: 6px;
+    background: linear-gradient(135deg, var(--brand), var(--brand-3));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
-
-.login-form {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-lg);
+.login-tagline {
+    text-align: center;
+    color: var(--text-3);
+    margin-bottom: 24px;
 }
-
 .login-error {
-    background-color: var(--error);
-    color: white;
-    padding: var(--spacing-md);
-    border-radius: var(--radius-md);
-    margin-bottom: var(--spacing-md);
-    font-size: 0.9rem;
+    background: rgba(248,113,113,0.12);
+    border: 1px solid rgba(248,113,113,0.3);
+    color: var(--danger);
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    margin-bottom: 16px;
+    text-align: center;
+    font-size: 0.95rem;
 }
 
-.team-select {
-    background-color: var(--bg-tertiary);
-    border: 2px solid var(--surface-1);
-    border-radius: var(--radius-md);
-    color: var(--text-primary);
-    padding: var(--spacing-md);
-    font-size: 1rem;
-    width: 100%;
-    cursor: pointer;
-    transition: border-color var(--transition-fast);
-}
+.login-form { display: flex; flex-direction: column; gap: 16px; }
 
-.team-select:hover,
-.team-select:focus {
-    border-color: var(--primary);
-    outline: none;
-}
-
-.team-select option {
-    background-color: var(--bg-tertiary);
-    color: var(--text-primary);
-    padding: var(--spacing-md);
-}
-
-.login-button {
-    background-color: var(--primary);
-    color: white;
-    border: none;
-    border-radius: var(--radius-md);
-    padding: var(--spacing-md);
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color var(--transition-fast);
-}
-
-.login-button:hover {
-    background-color: var(--primary-light);
-}
-
-.admin-link {
-    margin-top: var(--spacing-xl);
-    padding-top: var(--spacing-lg);
-    border-top: 1px solid var(--surface-1);
-}
-
-.admin-login-link {
-    color: var(--text-tertiary);
-    font-size: 0.9rem;
-    text-decoration: none;
-    transition: color var(--transition-fast);
-}
-
-.admin-login-link:hover {
-    color: var(--text-secondary);
-    text-decoration: underline;
-}
-
-/* Mobile Responsiveness */
-@media (max-width: 768px) {
-    .login-container {
-        min-height: calc(100vh - 4rem);
-    }
-
-    .login-card {
-        padding: var(--spacing-lg);
-    }
-
-    .login-logo {
-        width: 100px;
-    }
-
-    .login-title {
-        font-size: 1.75rem;
-    }
-}
-
-
-
-
-.admin-login-container {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.8);
-    justify-content: center;
+.team-preview {
+    display: flex;
     align-items: center;
-    z-index: 1000;
+    gap: 12px;
+    padding: 14px 16px;
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    transition: border-color var(--t);
 }
-.admin-login-container.show {
-    display: flex;
-}
-.admin-login-card {
-    background-color: var(--bg-secondary);
-    border-radius: var(--radius-lg);
-    padding: var(--spacing-xl);
-    width: 100%;
-    max-width: 400px;
-    box-shadow: var(--shadow-lg);
-    position: relative;
-}
-.admin-login-form {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-lg);
-}
+.team-preview-emoji { font-size: 1.8rem; }
+.team-preview-name { font-weight: 600; font-size: 1.05rem; }
 
-.close-modal {
-    position: absolute;
-    top: var(--spacing-md);
-    right: var(--spacing-md);
-    background: none;
-    border: none;
-    color: var(--text-tertiary);
+.login-btn { margin-top: 8px; padding: 14px 22px; font-size: 1.05rem; }
+
+.login-foot {
+    margin-top: 20px;
+    text-align: center;
+    color: var(--text-3);
+    font-size: 0.9rem;
+}
+.login-foot a { color: var(--accent); }
+.login-foot a:hover { color: var(--accent-2); }
+
+.existing-teams { margin-top: 4px; }
+.existing-teams summary {
     cursor: pointer;
-    font-size: 1.5rem;
-    padding: var(--spacing-xs);
-    transition: color var(--transition-fast);
-}
-.close-modal:hover {
-    color: var(--text-primary);
-}
-
-.input-group {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-xs);
-}
-.input-group label {
-    color: var(--text-secondary);
+    color: var(--text-3);
     font-size: 0.9rem;
+    padding: 8px 0;
+    user-select: none;
 }
-.input-group input {
-    background-color: var(--bg-tertiary);
-    border: 2px solid var(--surface-1);
-    border-radius: var(--radius-md);
-    color: var(--text-primary);
-    padding: var(--spacing-md);
-    font-size: 1rem;
-    transition: border-color var(--transition-fast);
+.existing-teams summary:hover { color: var(--text-2); }
+.existing-teams ul {
+    list-style: none;
+    display: flex; flex-wrap: wrap; gap: 8px;
+    margin-top: 8px;
 }
-.input-group input:focus {
-    border-color: var(--primary);
-    outline: none;
-}
-
-.error-message {
-    color: var(--error);
+.existing-teams li button {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    color: var(--text);
+    padding: 8px 14px;
+    border-radius: 999px;
+    cursor: pointer;
     font-size: 0.9rem;
-    margin-top: var(--spacing-xs);
-    display: none;
+    transition: background var(--t-fast);
 }
-.error-message.show {
-    display: block;
-}
+.existing-teams li button:hover { background: var(--bg-3); border-color: var(--line-2); }

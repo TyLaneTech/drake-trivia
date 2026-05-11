@@ -1,20 +1,227 @@
-<!-- templates/admin.html -->
 {% extends "base.html" %}
+{% block title %}Admin — Drake Trivia{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='styles/admin.css') }}">{% endblock %}
 
-{% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='styles/admin.css') }}">
+{% block content %}
+<div class="admin-shell">
+    <nav class="admin-tabs" role="tablist">
+        <button class="tab active" data-tab="live" role="tab">🎮 Live Game</button>
+        <button class="tab" data-tab="questions" role="tab">❓ Questions</button>
+        <button class="tab" data-tab="teams" role="tab">👥 Teams</button>
+        <button class="tab" data-tab="settings" role="tab">⚙️ Settings</button>
+    </nav>
+
+    <!-- LIVE TAB -->
+    <section class="tab-panel active" id="panel-live">
+        <div class="live-grid">
+            <div class="live-stage">
+                <div class="game-status-card" id="game-status">
+                    <div class="status-row">
+                        <span class="status-pill" id="game-state-pill">Loading…</span>
+                        <span class="status-meta" id="game-meta"></span>
+                    </div>
+                </div>
+
+                <div class="round-card" id="current-round-card">
+                    <div class="round-empty" id="round-empty">
+                        <p>No active round.</p>
+                        <p class="hint">Pick the next question below, or hit <strong>Auto-pick next</strong>.</p>
+                    </div>
+
+                    <div class="round-active" id="round-active" hidden>
+                        <div class="round-meta">
+                            <span class="round-tag" id="round-category">Category</span>
+                            <span class="round-tag" id="round-difficulty">Difficulty</span>
+                            <span class="round-tag" id="round-points">+0</span>
+                            <span class="round-tag round-tag-timer" id="round-timer">--s</span>
+                        </div>
+                        <h2 class="round-question" id="round-question">Question text</h2>
+                        <div class="round-correct" id="round-correct"></div>
+                        <ul class="round-options" id="round-options"></ul>
+                        <div class="round-answers" id="round-answers">
+                            <div class="answers-bar">
+                                <div class="answers-bar-fill" id="answers-bar-fill"></div>
+                                <span class="answers-bar-label" id="answers-bar-label">0/0 answered</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-row">
+                    <button class="primary-btn" id="btn-start-round">▶︎ Auto-pick next</button>
+                    <button class="ghost-btn" id="btn-lock">🔒 Lock answers</button>
+                    <button class="primary-btn primary-btn-alt" id="btn-reveal">✨ Reveal</button>
+                    <button class="ghost-btn ghost-btn-danger" id="btn-end-game">⏹ End game</button>
+                </div>
+                <div class="hint">Or push a specific question from the Questions tab.</div>
+            </div>
+
+            <aside class="live-leaderboard">
+                <h3>Live leaderboard</h3>
+                <ol class="leaderboard-list" id="leaderboard-list">
+                    <li class="leaderboard-empty">No teams have joined yet.</li>
+                </ol>
+                <details class="manual-adjust">
+                    <summary>Adjust scores manually</summary>
+                    <div id="manual-adjust-body"></div>
+                </details>
+            </aside>
+        </div>
+    </section>
+
+    <!-- QUESTIONS TAB -->
+    <section class="tab-panel" id="panel-questions" hidden>
+        <header class="panel-head">
+            <h2>Question bank</h2>
+            <div class="panel-actions">
+                <input type="search" id="q-search" placeholder="Search…">
+                <select id="q-filter-cat"><option value="">All categories</option></select>
+                <select id="q-filter-type">
+                    <option value="">All types</option>
+                    <option value="multiple_choice">Multiple choice</option>
+                    <option value="true_false">True / False</option>
+                    <option value="free_text">Free text</option>
+                </select>
+                <button class="primary-btn" id="btn-new-question">+ New question</button>
+                <button class="ghost-btn" id="btn-import-questions">Import JSON</button>
+            </div>
+        </header>
+
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>#</th><th>Question</th><th>Type</th><th>Category</th><th>Difficulty</th>
+                    <th>Pts</th><th>Time</th><th></th>
+                </tr>
+            </thead>
+            <tbody id="questions-tbody">
+                <tr><td colspan="8" class="loading">Loading…</td></tr>
+            </tbody>
+        </table>
+    </section>
+
+    <!-- TEAMS TAB -->
+    <section class="tab-panel" id="panel-teams" hidden>
+        <header class="panel-head">
+            <h2>Teams</h2>
+            <div class="panel-actions">
+                <button class="ghost-btn" id="btn-refresh-teams">Refresh</button>
+            </div>
+        </header>
+        <table class="data-table">
+            <thead>
+                <tr><th>Team</th><th>Color</th><th>Score</th><th>Joined</th><th></th></tr>
+            </thead>
+            <tbody id="teams-tbody">
+                <tr><td colspan="5" class="loading">Loading…</td></tr>
+            </tbody>
+        </table>
+    </section>
+
+    <!-- SETTINGS TAB -->
+    <section class="tab-panel" id="panel-settings" hidden>
+        <h2>Game settings</h2>
+        <div class="settings-grid">
+            <div class="setting-card">
+                <h3>Start a fresh game</h3>
+                <p>Ends the current game (if any) and starts a new one. Scores reset; question bank is preserved.</p>
+                <button class="ghost-btn ghost-btn-danger" id="btn-new-game">Start new game</button>
+            </div>
+            <div class="setting-card">
+                <h3>Big-screen scoreboard</h3>
+                <p>Open this on a TV or projector for the live audience view.</p>
+                <a class="primary-btn" href="{{ url_for('board.scoreboard') }}" target="_blank">Open scoreboard ↗</a>
+            </div>
+            <div class="setting-card">
+                <h3>Player link</h3>
+                <p>Teams can sign in at the root of this site.</p>
+                <button class="ghost-btn" id="btn-copy-link">Copy player link</button>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- Modal: question editor -->
+<dialog class="modal" id="question-modal">
+    <form method="dialog" id="question-form" class="modal-body">
+        <header class="modal-head">
+            <h2 id="question-modal-title">New question</h2>
+            <button type="button" class="icon-btn" data-close>×</button>
+        </header>
+        <input type="hidden" id="q-id">
+        <label class="field">
+            <span class="field-label">Type</span>
+            <select id="q-type">
+                <option value="multiple_choice">Multiple choice</option>
+                <option value="true_false">True / False</option>
+                <option value="free_text">Free text</option>
+            </select>
+        </label>
+        <label class="field">
+            <span class="field-label">Question</span>
+            <textarea id="q-text" rows="2" required></textarea>
+        </label>
+        <div id="q-options-wrap" class="field">
+            <span class="field-label">Options</span>
+            <div id="q-options-list"></div>
+            <button type="button" class="ghost-btn" id="q-add-option">+ Add option</button>
+        </div>
+        <label class="field">
+            <span class="field-label">Correct answer <span class="hint">(must match an option for multiple choice; use <code>|</code> to separate alternates for free text)</span></span>
+            <input type="text" id="q-correct" required>
+        </label>
+        <div class="field-row">
+            <label class="field"><span class="field-label">Category</span><input type="text" id="q-category" value="General"></label>
+            <label class="field"><span class="field-label">Difficulty</span>
+                <select id="q-difficulty">
+                    <option value="easy">Easy</option>
+                    <option value="medium" selected>Medium</option>
+                    <option value="hard">Hard</option>
+                </select>
+            </label>
+            <label class="field"><span class="field-label">Points</span><input type="number" id="q-points" value="5" min="1" max="100"></label>
+            <label class="field"><span class="field-label">Time (s)</span><input type="number" id="q-time" value="30" min="5" max="180"></label>
+        </div>
+        <label class="field">
+            <span class="field-label">Explanation <span class="hint">(optional, shown on reveal)</span></span>
+            <textarea id="q-explanation" rows="2"></textarea>
+        </label>
+        <footer class="modal-foot">
+            <button type="button" class="ghost-btn" data-close>Cancel</button>
+            <button type="submit" class="primary-btn" id="q-save">Save question</button>
+        </footer>
+    </form>
+</dialog>
+
+<!-- Modal: import JSON -->
+<dialog class="modal" id="import-modal">
+    <form method="dialog" class="modal-body">
+        <header class="modal-head">
+            <h2>Import questions (JSON)</h2>
+            <button type="button" class="icon-btn" data-close>×</button>
+        </header>
+        <p class="hint">Paste a JSON array of question objects, or an object with a <code>questions</code> key.</p>
+        <textarea id="import-text" rows="14" spellcheck="false" placeholder='[{"type": "multiple_choice", "text": "...", "options": ["..."], "correct_answer": "...", "category": "...", "points": 5, "time_limit_s": 30}]'></textarea>
+        <div class="import-result" id="import-result" hidden></div>
+        <footer class="modal-foot">
+            <button type="button" class="ghost-btn" data-close>Cancel</button>
+            <button type="button" class="primary-btn" id="btn-do-import">Import</button>
+        </footer>
+    </form>
+</dialog>
+
+<!-- Modal: confirm -->
+<dialog class="modal modal-confirm" id="confirm-modal">
+    <div class="modal-body modal-body-confirm">
+        <p id="confirm-message">Are you sure?</p>
+        <div class="modal-foot">
+            <button type="button" class="ghost-btn" id="confirm-cancel">Cancel</button>
+            <button type="button" class="primary-btn primary-btn-danger" id="confirm-ok">Confirm</button>
+        </div>
+    </div>
+</dialog>
 {% endblock %}
 
 {% block extra_js %}
 <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
-{% endblock %}
-
-{% block title %}Admin Dashboard{% endblock %}
-
-{% block content %}
-<div class="admin-dashboard">
-    <h1>Welcome, Admin</h1>
-    <!-- Add admin dashboard content here -->
-    <div id="admin-dashboard-container"></div>
-</div>
 {% endblock %}

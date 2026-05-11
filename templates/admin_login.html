@@ -1,16 +1,36 @@
-<!-- templates/admin_login.html -->
 {% extends "base.html" %}
+{% block title %}Admin sign in — Drake Trivia{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='styles/login.css') }}">{% endblock %}
+{% block body_class %}has-bg-gradient{% endblock %}
 
-{% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='styles/admin.css') }}">
+{% block content %}
+<div class="login-shell">
+    <div class="login-card">
+        <img src="{{ url_for('static', filename='images/d-logo.png') }}" alt="" class="login-logo">
+        <h1 class="login-title">Game Host</h1>
+        <p class="login-tagline" id="admin-tagline">Sign in to run the show.</p>
+
+        <div class="login-error" id="admin-error" hidden></div>
+
+        <form id="admin-form" class="login-form">
+            <label class="field">
+                <span class="field-label">Username</span>
+                <input type="text" id="admin-username" required autocomplete="username">
+            </label>
+            <label class="field">
+                <span class="field-label">Password</span>
+                <input type="password" id="admin-password" required autocomplete="current-password">
+            </label>
+            <button type="submit" class="primary-btn login-btn" id="admin-submit">Sign in</button>
+        </form>
+
+        <div class="login-foot">
+            <a href="{{ url_for('auth.login') }}">← Back to team sign in</a>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
-<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
-{% endblock %}
-
-{% block title %}Admin Login{% endblock %}
-
-{% block content %}
-<div id="admin-container"></div>
+<script src="{{ url_for('static', filename='js/admin_login.js') }}"></script>
 {% endblock %}

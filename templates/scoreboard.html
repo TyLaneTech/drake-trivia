@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}Scoreboard — Drake Trivia{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='styles/scoreboard.css') }}">{% endblock %}
+{% block body_class %}scoreboard-body{% endblock %}
+{% block header %}{% endblock %}
+
+{% block content %}
+<div class="board-shell" id="board-shell">
+
+    <header class="board-head">
+        <img src="{{ url_for('static', filename='images/d-logo.png') }}" alt="" class="board-logo">
+        <div class="board-title">
+            <h1 id="board-game-name">Drake Trivia</h1>
+            <span class="board-sub" id="board-sub">Loading…</span>
+        </div>
+        <div class="board-round-indicator">
+            <span class="board-round-label">ROUND</span>
+            <span class="board-round-num" id="board-round-num">—</span>
+        </div>
+    </header>
+
+    <!-- WAITING / BETWEEN ROUNDS: leaderboard front-and-center -->
+    <section class="board-stage" id="stage-waiting">
+        <div class="board-leaderboard-big" id="board-leaderboard-big">
+            <h2 class="board-leaderboard-title">Tournament Standings</h2>
+            <ol class="board-leader-list" id="board-leader-list">
+                <li class="board-leader-empty">Awaiting teams…</li>
+            </ol>
+        </div>
+        <p class="board-status-text" id="board-status-text">Next question coming up…</p>
+    </section>
+
+    <!-- ASKING: show the question + countdown + answer count -->
+    <section class="board-stage" id="stage-asking" hidden>
+        <div class="board-question-wrap">
+            <div class="board-tags">
+                <span class="board-tag" id="board-category">Category</span>
+                <span class="board-tag board-tag-difficulty" id="board-difficulty">medium</span>
+                <span class="board-tag board-tag-points" id="board-points">+5</span>
+            </div>
+            <h2 class="board-question-text" id="board-question-text"></h2>
+            <ul class="board-choices" id="board-choices"></ul>
+        </div>
+        <div class="board-side">
+            <div class="board-timer-big">
+                <svg viewBox="0 0 100 100" class="board-timer-ring">
+                    <circle class="board-timer-bg" cx="50" cy="50" r="46"/>
+                    <circle class="board-timer-fg" cx="50" cy="50" r="46" id="board-timer-fg"/>
+                </svg>
+                <div class="board-timer-num" id="board-timer-num">--</div>
+            </div>
+            <div class="board-answer-count">
+                <div class="board-count-bignum"><span id="board-count-done">0</span>/<span id="board-count-total">0</span></div>
+                <div class="board-count-label">teams answered</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- LOCKED -->
+    <section class="board-stage" id="stage-locked" hidden>
+        <div class="board-locked">
+            <div class="lock-icon">🔒</div>
+            <h2>Answers Locked</h2>
+            <p>Holding for the reveal…</p>
+        </div>
+    </section>
+
+    <!-- REVEALED -->
+    <section class="board-stage" id="stage-revealed" hidden>
+        <div class="board-reveal">
+            <div class="reveal-header">
+                <h2>The answer is…</h2>
+                <div class="board-reveal-answer" id="board-reveal-answer">—</div>
+                <p class="board-reveal-explanation" id="board-reveal-explanation" hidden></p>
+            </div>
+            <div class="board-reveal-table">
+                <h3>This round</h3>
+                <ul class="board-round-results" id="board-round-results"></ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- FINALE -->
+    <section class="board-stage" id="stage-finale" hidden>
+        <div class="board-finale">
+            <div class="confetti" aria-hidden="true"></div>
+            <h2 class="finale-title">🏆 Champions 🏆</h2>
+            <div class="finale-podium" id="finale-podium"></div>
+            <div class="finale-awards">
+                <h3>Tonight's Awards</h3>
+                <ul id="finale-awards-list"></ul>
+            </div>
+        </div>
+    </section>
+
+    <footer class="board-foot">
+        <span class="conn-status" id="board-conn-status">offline</span>
+        <span class="board-foot-tip">Press <kbd>F</kbd> for fullscreen · <kbd>M</kbd> to mute</span>
+    </footer>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/scoreboard.js') }}"></script>
+{% endblock %}

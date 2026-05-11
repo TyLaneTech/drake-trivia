@@ -1,116 +1,53 @@
-/* static/js/global.js */
+/* Drake Trivia — shared helpers loaded on every page. */
 
-// Initialize application when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-    initializeApp();
-    handleSidebarState();
-    //initializeSocketConnection();
-});
+(() => {
+    'use strict';
 
+    const NS = window.dt = window.dt || {};
 
-// Core initialization
-function initializeApp() {
-    // Set up any global event listeners
-    document.addEventListener('keydown', handleKeyboardShortcuts);
+    NS.formatTime = (s) => {
+        if (s == null || isNaN(s)) return '--';
+        s = Math.max(0, Math.round(s));
+        return `${s}`;
+    };
 
-    // Handle responsive sidebar
-    const mainContent = document.querySelector('.main-content');
-    const sidebar = document.querySelector('.sidebar');
+    NS.escapeHtml = (str) => String(str ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
 
-    if (sidebar && sidebar.classList.contains('collapsed')) {
-        mainContent?.classList.add('sidebar-collapsed');
-    }
-}
+    NS.fetchJSON = async (url, init = {}) => {
+        const opts = { credentials: 'same-origin', ...init };
+        if (opts.body && typeof opts.body === 'object' && !(opts.body instanceof FormData)) {
+            opts.headers = { 'Content-Type': 'application/json', ...(opts.headers || {}) };
+            opts.body = JSON.stringify(opts.body);
+        }
+        const resp = await fetch(url, opts);
+        const ct = resp.headers.get('content-type') || '';
+        const data = ct.includes('application/json') ? await resp.json() : await resp.text();
+        if (!resp.ok) {
+            const err = new Error((data && data.error) || `HTTP ${resp.status}`);
+            err.status = resp.status; err.data = data;
+            throw err;
+        }
+        return data;
+    };
 
-// Handle keyboard shortcuts
-function handleKeyboardShortcuts(e) {
-    // Example: Toggle sidebar with Ctrl + B
-    if (e.ctrlKey && e.key === 'b') {
-        e.preventDefault();
-        document.getElementById('sidebar-toggle')?.click();
-    }
-}
-
-// Manage sidebar state
-function handleSidebarState() {
-  const sidebarToggle = document.getElementById('sidebar-toggle');
-  const sidebar = document.getElementById('sidebar');
-
-  const sidebarCollapsed = true;
-  if (sidebarCollapsed) {
-      sidebar.classList.add('collapsed');
-      sidebarToggle.classList.remove('active');
-  } else {
-      sidebarToggle.classList.add('active');
-  }
-
-  // Toggle sidebar
-  sidebarToggle.addEventListener('click', function() {
-      sidebar.classList.toggle('collapsed');
-      this.classList.toggle('active');
-  });
-
-  // Close sidebar on mobile when clicking outside
-  document.addEventListener('click', function(event) {
-      const isClickInside = sidebar.contains(event.target) || sidebarToggle.contains(event.target);
-
-      if (!isClickInside && window.innerWidth <= 768 && !sidebar.classList.contains('collapsed')) {
-          sidebar.classList.add('collapsed');
-          sidebarToggle.classList.remove('active');
-          localStorage.setItem('sidebarCollapsed', 'true');
-      }
-  });
-}
-
-// Socket.IO connection handling
-function initializeSocketConnection() {
-    // Only initialize Socket.IO if it's available
-    if (typeof io !== 'undefined') {
-        const socket = io();
-
-        socket.on('connect', () => {
-            console.log('Socket connected');
+    NS.connectSocket = (handlers) => {
+        if (typeof io === 'undefined') {
+            console.error('socket.io not loaded');
+            return null;
+        }
+        const sock = io({
+            transports: ['websocket', 'polling'],
+            reconnection: true,
+            reconnectionDelay: 800,
         });
-
-        socket.on('disconnect', () => {
-            console.log('Socket disconnected');
-        });
-
-        // Make socket available globally
-        window.gameSocket = socket;
-    }
-}
-
-
-
-// Utility functions
-const utils = {
-    // Debounce function for performance optimization
-    debounce: (fn, delay) => {
-        let timeoutId;
-        return (...args) => {
-            clearTimeout(timeoutId);
-            timeoutId = setTimeout(() => fn(...args), delay);
-        };
-    },
-
-    // Format date/time consistently
-    formatDate: (date) => {
-        return new Intl.DateTimeFormat('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        }).format(new Date(date));
-    },
-
-    // Show toast/notification messages
-    showNotification: (message, type = 'info') => {
-        // Implementation depends on your UI library/requirements
-        console.log(`${type}: ${message}`);
-    }
-};
-
-// Make utilities available globally
-window.utils = utils;
+        if (handlers) {
+            for (const [evt, fn] of Object.entries(handlers)) sock.on(evt, fn);
+        }
+        return sock;
+    };
+})();

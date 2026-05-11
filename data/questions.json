@@ -1,0 +1,72 @@
+{
+  "questions": [
+    {"type":"multiple_choice","category":"General","difficulty":"easy","text":"How many continents are there?","options":["5","6","7","8"],"correct_answer":"7","points":5,"time_limit_s":20},
+    {"type":"multiple_choice","category":"General","difficulty":"easy","text":"Which of these is NOT a primary color?","options":["Red","Blue","Green","Yellow"],"correct_answer":"Green","points":5,"time_limit_s":20},
+    {"type":"multiple_choice","category":"General","difficulty":"medium","text":"What is the chemical symbol for gold?","options":["Gd","Go","Au","Ag"],"correct_answer":"Au","points":5,"time_limit_s":25,"explanation":"From the Latin 'aurum'."},
+    {"type":"multiple_choice","category":"General","difficulty":"medium","text":"How many bones are in the adult human body?","options":["186","206","226","246"],"correct_answer":"206","points":5,"time_limit_s":25},
+    {"type":"multiple_choice","category":"General","difficulty":"hard","text":"What is the rarest blood type?","options":["O-","A-","B-","AB-"],"correct_answer":"AB-","points":7,"time_limit_s":25,"explanation":"AB- occurs in less than 1% of people."},
+    {"type":"true_false","category":"General","difficulty":"easy","text":"Bats are blind.","correct_answer":"False","points":5,"time_limit_s":15,"explanation":"All bats can see; many also use echolocation."},
+    {"type":"true_false","category":"General","difficulty":"easy","text":"A group of crows is called a 'murder'.","correct_answer":"True","points":5,"time_limit_s":15},
+    {"type":"free_text","category":"General","difficulty":"medium","text":"What is the only mammal capable of true flight?","correct_answer":"Bat|Bats","points":5,"time_limit_s":20},
+
+    {"type":"multiple_choice","category":"Geography","difficulty":"easy","text":"What is the capital of Australia?","options":["Sydney","Melbourne","Canberra","Perth"],"correct_answer":"Canberra","points":5,"time_limit_s":20},
+    {"type":"multiple_choice","category":"Geography","difficulty":"easy","text":"Which river flows through Egypt?","options":["Amazon","Nile","Yangtze","Mississippi"],"correct_answer":"Nile","points":5,"time_limit_s":20},
+    {"type":"multiple_choice","category":"Geography","difficulty":"medium","text":"Mount Kilimanjaro is in which country?","options":["Kenya","Ethiopia","Tanzania","Uganda"],"correct_answer":"Tanzania","points":5,"time_limit_s":25},
+    {"type":"multiple_choice","category":"Geography","difficulty":"medium","text":"Which is the largest desert in the world?","options":["Sahara","Gobi","Antarctic","Arabian"],"correct_answer":"Antarctic","points":7,"time_limit_s":25,"explanation":"Antarctica is technically a polar desert and is the largest."},
+    {"type":"multiple_choice","category":"Geography","difficulty":"hard","text":"What is the smallest country in the world by area?","options":["Monaco","San Marino","Vatican City","Liechtenstein"],"correct_answer":"Vatican City","points":7,"time_limit_s":25},
+    {"type":"true_false","category":"Geography","difficulty":"easy","text":"Africa is the largest continent.","correct_answer":"False","points":5,"time_limit_s":15,"explanation":"Asia is the largest."},
+    {"type":"free_text","category":"Geography","difficulty":"medium","text":"What is the tallest mountain in the world?","correct_answer":"Mount Everest|Everest","points":5,"time_limit_s":25},
+    {"type":"free_text","category":"Geography","difficulty":"medium","text":"How many U.S. states border the Atlantic Ocean?","correct_answer":"14","points":7,"time_limit_s":25,"explanation":"ME, NH, MA, RI, CT, NY, NJ, DE, MD, VA, NC, SC, GA, FL."},
+
+    {"type":"multiple_choice","category":"History","difficulty":"easy","text":"In what year did World War II end?","options":["1943","1944","1945","1946"],"correct_answer":"1945","points":5,"time_limit_s":20},
+    {"type":"multiple_choice","category":"History","difficulty":"medium","text":"Who was the first President of the United States?","options":["Thomas Jefferson","John Adams","George Washington","James Madison"],"correct_answer":"George Washington","points":5,"time_limit_s":20},
+    {"type":"multiple_choice","category":"History","difficulty":"medium","text":"The Great Wall of China was primarily built to defend against whom?","options":["The Mongols","The Japanese","The Russians","The Romans"],"correct_answer":"The Mongols","points":5,"time_limit_s":25},
+    {"type":"multiple_choice","category":"History","difficulty":"hard","text":"In which year did the Berlin Wall fall?","options":["1987","1988","1989","1990"],"correct_answer":"1989","points":7,"time_limit_s":25},
+    {"type":"multiple_choice","category":"History","difficulty":"hard","text":"Cleopatra was the last active ruler of which kingdom?","options":["Babylonian","Ptolemaic","Roman","Persian"],"correct_answer":"Ptolemaic","points":7,"time_limit_s":25},
+    {"type":"true_false","category":"History","difficulty":"easy","text":"The Titanic sank in 1912.","correct_answer":"True","points":5,"time_limit_s":15},
+    {"type":"free_text","category":"History","difficulty":"medium","text":"Who painted the Mona Lisa?","correct_answer":"Leonardo da Vinci|da Vinci|Leonardo","points":5,"time_limit_s":25},
+    {"type":"free_text","category":"History","difficulty":"hard","text":"What was the name of the ship the Pilgrims sailed to America in 1620?","correct_answer":"Mayflower|The Mayflower","points":7,"time_limit_s":25},
+
+    {"type":"multiple_choice","category":"Science","difficulty":"easy","text":"Which planet is closest to the Sun?","options":["Venus","Mercury","Earth","Mars"],"correct_answer":"Mercury","points":5,"time_limit_s":20},
+    {"type":"multiple_choice","category":"Science","difficulty":"easy","text":"What gas do plants absorb from the atmosphere?","options":["Oxygen","Nitrogen","Carbon dioxide","Helium"],"correct_answer":"Carbon dioxide","points":5,"time_limit_s":20},
+    {"type":"multiple_choice","category":"Science","difficulty":"medium","text":"What is the largest organ in the human body?","options":["Liver","Heart","Skin","Brain"],"correct_answer":"Skin","points":5,"time_limit_s":20},
+    {"type":"multiple_choice","category":"Science","difficulty":"medium","text":"At what temperature does water freeze in Fahrenheit?","options":["0°F","32°F","45°F","100°F"],"correct_answer":"32°F","points":5,"time_limit_s":20},
+    {"type":"multiple_choice","category":"Science","difficulty":"hard","text":"What's the speed of light in a vacuum (approx, m/s)?","options":["3 x 10^5","3 x 10^7","3 x 10^8","3 x 10^10"],"correct_answer":"3 x 10^8","points":7,"time_limit_s":25},
+    {"type":"true_false","category":"Science","difficulty":"easy","text":"Sound travels faster than light.","correct_answer":"False","points":5,"time_limit_s":15},
+    {"type":"true_false","category":"Science","difficulty":"medium","text":"Sharks are mammals.","correct_answer":"False","points":5,"time_limit_s":15,"explanation":"Sharks are fish."},
+    {"type":"free_text","category":"Science","difficulty":"medium","text":"What planet is known as the Red Planet?","correct_answer":"Mars","points":5,"time_limit_s":20},
+    {"type":"free_text","category":"Science","difficulty":"hard","text":"How many hearts does an octopus have?","correct_answer":"3|Three","points":7,"time_limit_s":25,"explanation":"Two pump blood through the gills; one pumps to the rest of the body."},
+
+    {"type":"multiple_choice","category":"Pop Culture","difficulty":"easy","text":"Who sang 'Hotline Bling'?","options":["Drake","The Weeknd","Bruno Mars","Travis Scott"],"correct_answer":"Drake","points":5,"time_limit_s":20},
+    {"type":"multiple_choice","category":"Pop Culture","difficulty":"easy","text":"Which movie features a clownfish named Nemo?","options":["Shark Tale","Finding Nemo","Moana","Aquaman"],"correct_answer":"Finding Nemo","points":5,"time_limit_s":20},
+    {"type":"multiple_choice","category":"Pop Culture","difficulty":"medium","text":"In Friends, what is the name of Ross and Monica's grandmother?","options":["Althea","Edna","Ida","Lillian"],"correct_answer":"Althea","points":7,"time_limit_s":25},
+    {"type":"multiple_choice","category":"Pop Culture","difficulty":"medium","text":"Which band released the album 'Abbey Road'?","options":["The Rolling Stones","The Beatles","Pink Floyd","Led Zeppelin"],"correct_answer":"The Beatles","points":5,"time_limit_s":20},
+    {"type":"multiple_choice","category":"Pop Culture","difficulty":"hard","text":"Who directed the movie 'Inception'?","options":["Steven Spielberg","Christopher Nolan","James Cameron","Ridley Scott"],"correct_answer":"Christopher Nolan","points":7,"time_limit_s":25},
+    {"type":"true_false","category":"Pop Culture","difficulty":"easy","text":"Mickey Mouse made his debut in 1928.","correct_answer":"True","points":5,"time_limit_s":15},
+    {"type":"free_text","category":"Pop Culture","difficulty":"medium","text":"What is the name of Harry Potter's pet owl?","correct_answer":"Hedwig","points":5,"time_limit_s":20},
+    {"type":"free_text","category":"Pop Culture","difficulty":"medium","text":"In what fictional town does Stranger Things take place?","correct_answer":"Hawkins|Hawkins, Indiana","points":7,"time_limit_s":25},
+
+    {"type":"multiple_choice","category":"Sports","difficulty":"easy","text":"How many players are on a soccer team on the field at one time (per side)?","options":["9","10","11","12"],"correct_answer":"11","points":5,"time_limit_s":15},
+    {"type":"multiple_choice","category":"Sports","difficulty":"easy","text":"In which sport would you perform a 'slam dunk'?","options":["Tennis","Soccer","Basketball","Hockey"],"correct_answer":"Basketball","points":5,"time_limit_s":15},
+    {"type":"multiple_choice","category":"Sports","difficulty":"medium","text":"How often are the Summer Olympic Games held?","options":["Every 2 years","Every 3 years","Every 4 years","Every 5 years"],"correct_answer":"Every 4 years","points":5,"time_limit_s":20},
+    {"type":"multiple_choice","category":"Sports","difficulty":"medium","text":"Which country has won the most FIFA World Cups?","options":["Germany","Italy","Brazil","Argentina"],"correct_answer":"Brazil","points":5,"time_limit_s":20},
+    {"type":"multiple_choice","category":"Sports","difficulty":"hard","text":"What is the maximum break in a game of snooker?","options":["147","148","155","180"],"correct_answer":"147","points":7,"time_limit_s":25},
+    {"type":"true_false","category":"Sports","difficulty":"easy","text":"A perfect score in 10-pin bowling is 300.","correct_answer":"True","points":5,"time_limit_s":15},
+    {"type":"free_text","category":"Sports","difficulty":"medium","text":"In which sport is the Stanley Cup awarded?","correct_answer":"Hockey|Ice hockey|NHL","points":5,"time_limit_s":20},
+    {"type":"free_text","category":"Sports","difficulty":"hard","text":"What is Michael Jordan's jersey number that the Bulls retired?","correct_answer":"23","points":7,"time_limit_s":20},
+
+    {"type":"multiple_choice","category":"Food & Drink","difficulty":"easy","text":"What is the main ingredient in guacamole?","options":["Tomato","Avocado","Bean","Onion"],"correct_answer":"Avocado","points":5,"time_limit_s":15},
+    {"type":"multiple_choice","category":"Food & Drink","difficulty":"easy","text":"Which country is the origin of sushi?","options":["China","Korea","Japan","Thailand"],"correct_answer":"Japan","points":5,"time_limit_s":15},
+    {"type":"multiple_choice","category":"Food & Drink","difficulty":"medium","text":"What spice is the most expensive in the world?","options":["Vanilla","Saffron","Cardamom","Cinnamon"],"correct_answer":"Saffron","points":7,"time_limit_s":20},
+    {"type":"true_false","category":"Food & Drink","difficulty":"medium","text":"Honey never spoils.","correct_answer":"True","points":5,"time_limit_s":15,"explanation":"Edible honey has been found in ancient Egyptian tombs."},
+    {"type":"free_text","category":"Food & Drink","difficulty":"medium","text":"What fruit is known as the 'king of fruits' in Southeast Asia?","correct_answer":"Durian","points":7,"time_limit_s":25},
+
+    {"type":"multiple_choice","category":"Math & Logic","difficulty":"easy","text":"What is 12 x 12?","options":["124","132","144","156"],"correct_answer":"144","points":5,"time_limit_s":15},
+    {"type":"multiple_choice","category":"Math & Logic","difficulty":"medium","text":"What is the square root of 169?","options":["11","12","13","14"],"correct_answer":"13","points":5,"time_limit_s":20},
+    {"type":"multiple_choice","category":"Math & Logic","difficulty":"hard","text":"How many degrees are in the interior angles of a pentagon (total)?","options":["360","450","540","720"],"correct_answer":"540","points":7,"time_limit_s":25},
+    {"type":"free_text","category":"Math & Logic","difficulty":"medium","text":"What is 25% of 200?","correct_answer":"50","points":5,"time_limit_s":15},
+
+    {"type":"multiple_choice","category":"Family Lore","difficulty":"easy","text":"What's the unofficial sport of every Drake family gathering?","options":["Trivia","Cornhole","Volleyball","Cards"],"correct_answer":"Trivia","points":5,"time_limit_s":15,"explanation":"Now you know it's official."},
+    {"type":"true_false","category":"Family Lore","difficulty":"easy","text":"Tonight's tournament is family-friendly.","correct_answer":"True","points":5,"time_limit_s":10}
+  ]
+}
