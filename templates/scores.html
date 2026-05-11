@@ -5,7 +5,7 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='styles/scores.css') }}">
 {% endblock %}
 {% block extra_js %}
-<link rel="stylesheet" href="{{ url_for('static', filename='js/scores.js') }}">
+<script src="{{ url_for('static', filename='js/scores.js') }}"></script>
 {% endblock %}
 
 {% block title %}Scores{% endblock %}
@@ -30,6 +30,5 @@
         <div id="fastest-answers">Fastest Answers: <span>--</span></div>
         <div id="most-accurate">Most Accurate: <span>--</span></div>
     </div>
-    <input type="hidden" id="pubsub-token" value="{{ pubsub_token }}">
 </div>
 {% endblock %}

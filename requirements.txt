@@ -1,18 +1,17 @@
-# Flask and Socket.IO
-flask-socketio
-python-socketio
-python-engineio
-Flask
-kombu
+# Flask + realtime
+Flask>=3.0,<4.0
+Flask-SocketIO>=5.3,<6.0
+Flask-SQLAlchemy>=3.1,<4.0
+python-socketio>=5.11,<6.0
+python-engineio>=4.9,<5.0
 
-# Azure SDK packages
-azure-messaging-webpubsubservice
-azure-data-tables
-azure-identity
-azure-core
-redis
+# Database
+SQLAlchemy>=2.0,<3.0
+psycopg[binary]>=3.1,<4.0
 
-# Environment and server
-python-dotenv
-eventlet
-gunicorn
+# Server
+gunicorn>=21.2
+eventlet>=0.36,<1.0
+
+# Misc
+python-dotenv>=1.0

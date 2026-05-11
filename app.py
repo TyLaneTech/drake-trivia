@@ -1,309 +1,137 @@
-from flask import Flask, render_template, request, jsonify, session, redirect, url_for
-from werkzeug.security import generate_password_hash, check_password_hash
-from azure.messaging.webpubsubservice import WebPubSubServiceClient
-from azure.core.exceptions import ResourceNotFoundError
-from azure.data.tables import TableServiceClient
-import os, secrets, asyncio, json, time
-from dotenv import load_dotenv
-from threading import Thread
+import eventlet
+eventlet.monkey_patch()
+
+import os
+import json
 import secrets
 import logging
+from datetime import datetime
 
-def calculate_score(team, answer, timestamp):
-    # TODO: Implement scoring logic
-    return 0
-    # Log sources to ignore non-error messages for
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for
+from flask_socketio import SocketIO
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import String, Boolean, Integer, Float, DateTime, Text, select
+from sqlalchemy.orm import Mapped, mapped_column
+from werkzeug.security import generate_password_hash, check_password_hash
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 def setup_logging():
-    """Configure logging"""
-    log_level = logging.INFO
     logging.basicConfig(
-        level=log_level,
+        level=logging.INFO,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     )
-
-    for loggerStr in ['azure.core.pipeline.policies.http_logging_policy', 'werkzeug', 'urllib3', 'openai', 'azure', 'httpx']:
-        logger = logging.getLogger(loggerStr)
-        logger.setLevel(logging.ERROR)
-        logger.propagate = False
-
-    # Suppress Azure SDK, and urllib3 logging messages
-    http_logger = logging.getLogger('azure.core.pipeline.policies.http_logging_policy')
-    urllib3_logger = logging.getLogger('urllib3')
-    azure_logger = logging.getLogger('azure')
-    urllib3_logger.setLevel(logging.ERROR)
-    azure_logger.setLevel(logging.ERROR)
-    http_logger.setLevel(logging.ERROR)
-    urllib3_logger.propagate = False
-    azure_logger.propagate = False
-    http_logger.propagate = False
-
-def threadedCommand(command):
-    def subFunc(command):
-        print(f'Running Command: "{command}"')
-        time.sleep(0.2)
-        os.system(command)
-    Thread(target=subFunc, args=[command], daemon=True).start()
-
-def webserver(devMode=False):
-    """Initialize and run the Flask web server with all configurations"""
-    # Load environment variables
-    load_dotenv()
-
-    # Verify required Azure configurations
-    required_vars = [
-        'AZURE_STORAGE_CONNECTION_STRING',
-        'AZURE_WEBPUBSUB_CONNECTION_STRING',
-        'FLASK_SECRET_KEY'
-    ]
-
-    missing_vars = [var for var in required_vars if not os.getenv(var)]
-    if missing_vars:
-        raise ValueError(
-            f"Missing required environment variables: {', '.join(missing_vars)}\n"
-            f"Please ensure these are set in your .env file or environment."
-        )
+    for name in ('werkzeug', 'urllib3', 'engineio', 'socketio'):
+        logging.getLogger(name).setLevel(logging.WARNING)
 
 
-    def init_admin_table(table_service_client):
-        """Initialize admin user in Azure Table Storage"""
-        admin_table = table_service_client.get_table_client('users')
-
-        # Check if admin user exists
-        try:
-            admin_table.get_entity('admin', 'admin')
-        except:
-            # Create admin user if it doesn't exist
-            admin_table.create_entity({
-                'PartitionKey': 'admin',
-                'RowKey': 'admin',
-                'username': 'admin',
-                # Default password is 'admin123' - should be changed after first login
-                'password': generate_password_hash('admin123'),
-                'token': secrets.token_hex(32)
-            })
-    def init_storage_tables(table_service_client):
-        """Initialize Azure Storage Tables"""
-        tables = {
-            'teams': {
-                'description': 'Stores team information and status',
-                'client': None
-            },
-            'questions': {
-                'description': 'Stores trivia questions and current game state',
-                'client': None
-            },
-            'scores': {
-                'description': 'Stores team answers and scoring information',
-                'client': None
-            },
-            'users': {
-                'description': 'Stores team answers and scoring information',
-                'client': None
-            }
-        }
-
-        # Create tables if they don't exist and store clients
-        for table_name in tables:
-            try:
-                table_service_client.create_table(table_name)
-                tables[table_name]['client'] = table_service_client.get_table_client(table_name)
-                print(f"Created or verified table: {table_name}")
-            except Exception as e:
-                #print(f"Table {table_name} already exists or error: {str(e)}")
-                tables[table_name]['client'] = table_service_client.get_table_client(table_name)
-
-        return tables
-    def inject_defaults():
-        endpoint = request.path
-        return {}
-        appName = config.APP_NAME
-        devMode = config.dev_mode
+db = SQLAlchemy()
+socketio = SocketIO(async_mode='eventlet', cors_allowed_origins='*')
 
 
-        # Define the b64encode filter function
-        @timed_cache(3600*2)
-        def b64encode_filter(value):
-            print(f'Converting b64...')
-            """Base64 encode a given value."""
-            return base64.b64encode(value.encode('utf-8')).decode('utf-8')
-
-        subtitleDict = {
-            "Failed": "Jobs that failed before mapping",
-            "Pending Review": "Jobs that completed with discrepencies",
-            "Pending": "Jobs that are currently in progress",
-            "Ignored": "Jobs that were manually ignored",
-            "Success": "Jobs that completed with no discrepencies"
-        }
-
-        jobErrorNameMap = {"Field Mismatches": "Column Name Mismatches"}
-        tableFieldDict = {}
-        allSnowFields = {}
-        if '/mappings' in str(endpoint).lower():
-            tableFieldDict = json.dumps(readJSON(config.snowFieldRefJSON))
-            allSnowFields = config.allSnowFields
-
-        companyNames = []
-        companyNamesB64 = ''
-        if '/job/' in str(endpoint).lower():
-            companyNames, companyNamesB64 = fetchValidAgencies(refreshDB=False, fetchAll=False, bs=context_bs, includeB64=True)
-
-        allAccessLevels = ['user', 'admin', 'supervisor']
-
-        isLoggedIn = 'username' in session
-        username = session.get('username', None)
-        alertDict = getAlertDict(username)
-        userDict = getUserDict(username, ts=context_ts)
+class Team(db.Model):
+    __tablename__ = 'teams'
+    name: Mapped[str] = mapped_column(String(128), primary_key=True)
+    active: Mapped[bool] = mapped_column(Boolean, default=True)
+    score: Mapped[int] = mapped_column(Integer, default=0)
 
 
-        userTemplates = getUserTemplates(username, returnType='name', bs=context_bs, ts=context_ts)
-
-        if 'prod' in config.SHORT_ENV.lower():
-            altName = 'Dev'
-            altURL = APP_URL.replace('higgdatamapper.', 'higgdatamapper-dev.') + '/'
-            appNameString = appName
-        else:
-            if 'localhost' in APP_URL.lower(): altURL = 'https://higgdatamapper.azurewebsites.net/'
-            else: altURL = APP_URL.replace('higgdatamapper-dev.', 'higgdatamapper.') + '/'
-            altName = 'Prod'
-            appNameString = f'({config.SHORT_ENV}) Data Mapper'
-
-        return {
-            'appName': appName,
-            'token': request.cookies.get('token', None),
-            'altURL': altURL,
-            'altName': altName,
-            'appNameString': appNameString,
-            'templates': userTemplates,
-            'alertDict': alertDict,
-            'userDict': userDict,
-            'devMode': devMode,
-            'allAccessLevels': allAccessLevels,
-            'jobErrorNameMap': jobErrorNameMap,
-            'tableFieldDict': tableFieldDict,
-            'allSnowFields': allSnowFields,
-            'validAgencies': companyNames,
-            'validAgencyB64': companyNamesB64,
-            'b64encode': b64encode_filter,
-            'subtitleDict': subtitleDict,
-            'isLoggedIn': isLoggedIn,
-            'jsonDumps': json.dumps,
-            'enumerate': enumerate,
-            'type': type,
-            'len': len,
-            'str': str
-        }
-    def check_login(forceLogin=True):
-        requestMethod = request.method
-        endpoint = str(request.path)
-        username = session.get('username', None)
-        userIP = request.remote_addr
-        validEndpoints = {rule.rule for rule in app.url_map.iter_rules()}
-
-        # Logging requests
-        if any(endpoint.startswith(validEndpoint) for validEndpoint in validEndpoints) and not endpoint.startswith('/socket.io/'):
-            if '/static/' not in endpoint:
-                if not (endpoint == '/' and requestMethod == 'GET'):
-                    if not username: username = userIP
-                    print(f'{username} - Requested "{endpoint}" ({requestMethod})')
+class Question(db.Model):
+    __tablename__ = 'questions'
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    is_current: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
+    text: Mapped[str] = mapped_column(Text)
+    answer: Mapped[str] = mapped_column(Text, default='')
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 
-    # Initialize Flask app
+class Score(db.Model):
+    __tablename__ = 'scores'
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    question_id: Mapped[str] = mapped_column(String(64), index=True)
+    team: Mapped[str] = mapped_column(String(128), index=True)
+    answer: Mapped[str] = mapped_column(Text)
+    timestamp: Mapped[str] = mapped_column(String(64))
+    score: Mapped[int] = mapped_column(Integer, default=0)
+
+
+class AdminUser(db.Model):
+    __tablename__ = 'admin_users'
+    username: Mapped[str] = mapped_column(String(64), primary_key=True)
+    password_hash: Mapped[str] = mapped_column(String(256))
+    token: Mapped[str] = mapped_column(String(128))
+
+
+def _normalize_db_url(url: str) -> str:
+    # Railway/Heroku-style postgres:// → SQLAlchemy expects postgresql://
+    if url.startswith('postgres://'):
+        url = url.replace('postgres://', 'postgresql://', 1)
+    return url
+
+
+def create_app() -> Flask:
+    required = ['FLASK_SECRET_KEY']
+    missing = [v for v in required if not os.getenv(v)]
+    if missing:
+        raise ValueError(f"Missing required environment variables: {', '.join(missing)}")
+
     app = Flask(__name__)
     app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY')
-    app.context_processor(inject_defaults)
-    app.before_request(check_login)
 
-    # Initialize Azure Web PubSub client
-    wps_connection_string = os.getenv('AZURE_WEBPUBSUB_CONNECTION_STRING')
-    sa_connection_string = os.getenv('AZURE_STORAGE_CONNECTION_STRING')
+    db_url = os.getenv('DATABASE_URL', 'sqlite:///drake_trivia.db')
+    app.config['SQLALCHEMY_DATABASE_URI'] = _normalize_db_url(db_url)
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-    question_client = WebPubSubServiceClient.from_connection_string(wps_connection_string, hub='questions')
-    score_client = WebPubSubServiceClient.from_connection_string(wps_connection_string, hub='scores')
+    db.init_app(app)
+    socketio.init_app(app)
 
-    table_service_client = TableServiceClient.from_connection_string(sa_connection_string)
+    with app.app_context():
+        db.create_all()
 
-    # Initialize tables and get table clients
-    tables = init_storage_tables(table_service_client)
-    teams_table = tables['teams']['client']
-    questions_table = tables['questions']['client']
-    scores_table = tables['scores']['client']
-    init_admin_table(table_service_client)
-
-    # Web PubSub event handler
-    @app.route('/eventhandler', methods=['POST', 'OPTIONS', 'GET'])
-    def handle_event():
-        try:
-            print(request.headers)
-            if request.method == 'OPTIONS':
-                # Handle the WebHook validation
-                if request.headers.get('WebHook-Request-Origin'):
-                    res = Response()
-                    res.headers['WebHook-Allowed-Origin'] = '*'
-                    return res
-
-            if request.method == 'POST':
-                event_type = request.headers.get('ce-type')
-                print(f"Received event of type: {event_type}")
-
-                if event_type == 'azure.webpubsub.sys.connect':
-                    return jsonify({'message': 'Client connected successfully'}), 200
-
-                elif event_type == 'azure.webpubsub.user.question':
-                    # Handle question messages
-                    message = request.get_json()
-                    print(f"Question event received: {message}")
-                    question_client.send_to_all(json.dumps(message))  # Broadcast to all clients in 'questions' hub
-                    return Response(status=200)
-
-                elif event_type == 'azure.webpubsub.user.score':
-                    # Handle score updates
-                    message = request.get_json()
-                    print(f"Score event received: {message}")
-                    score_client.send_to_all(json.dumps(message))  # Broadcast to all clients in 'scores' hub
-                    return Response(status=200)
-
-                else:
-                    print(f"Unknown event type: {event_type}")
-                    return Response("Unknown event type", status=400)
-
-            else:
-                return jsonify({'success': '"/eventhandler" endpoint is active'}), 200
-        except Exception as e:
-            print(f"Error handling event: {e}")
-            traceback.print_exc()
-            return Response("Oopsie", status=200)
-            return Response("Internal Server Error", status=500)
+    def calculate_score(team, answer, timestamp):
+        # TODO: real scoring logic
+        return 0
 
     @app.context_processor
     def inject_defaults():
-        endpoint = request.endpoint
-        userIP = request.remote_addr
-        print(f'{userIP} requested "{endpoint}"')
         return {
-            'endpoint': endpoint,
-            'userIP': userIP
+            'endpoint': request.endpoint,
+            'userIP': request.remote_addr,
         }
 
+    @app.before_request
+    def log_request():
+        endpoint = str(request.path)
+        if endpoint.startswith('/static/') or endpoint.startswith('/socket.io/'):
+            return
+        if endpoint == '/' and request.method == 'GET':
+            return
+        username = session.get('username') or session.get('team_name') or request.remote_addr
+        app.logger.info(f'{username} - {request.method} {endpoint}')
 
-    # Route definitions
     @app.route('/')
     def index():
         return redirect(url_for('login'))
+
     @app.route('/logout')
     def logout():
         session.clear()
         return redirect(url_for('index'))
+
     @app.route('/login', methods=['GET', 'POST'])
     def login():
         if request.method == 'POST':
-            team_name = request.form.get('team_name')
+            team_name = (request.form.get('team_name') or '').strip()
             if team_name:
-                teams_table.upsert_entity({
-                    'PartitionKey': 'teams',
-                    'RowKey': team_name,
-                    'active': True
-                })
+                team = db.session.get(Team, team_name)
+                if team is None:
+                    team = Team(name=team_name, active=True, score=0)
+                    db.session.add(team)
+                else:
+                    team.active = True
+                db.session.commit()
                 session['team_name'] = team_name
                 return redirect(url_for('scores'))
         return render_template('login.html')
@@ -313,119 +141,72 @@ def webserver(devMode=False):
         if request.method == 'GET':
             return render_template('admin_login.html')
 
-        data = request.json
+        data = request.get_json(silent=True) or {}
         username = data.get('username')
         password = data.get('password')
-
         if not username or not password:
             return jsonify({'error': 'Missing credentials'}), 400
 
-        admin_table = tables['users']['client']
-
-        try:
-            # Try to get admin user
-            admin_user = admin_table.get_entity('admin', 'admin')
-
-            # Check credentials
-            if username == admin_user['username'] and check_password_hash(admin_user['password'], password):
-                # Create new session token
-                new_token = secrets.token_hex(32)
-
-                # Update token in database
-                admin_user['token'] = new_token
-                admin_table.update_entity(admin_user)
-
-                # Set session variables
-                session['is_admin'] = True
-                session['admin_token'] = new_token
-
-                return jsonify({'redirect': url_for('admin')})
-            else:
-                return jsonify({'error': 'Invalid credentials'}), 401
-
-        except ResourceNotFoundError:
-            # Admin user does not exist, create one
+        admin = db.session.get(AdminUser, 'admin')
+        if admin is None:
+            # First-time setup: create the admin
             token = secrets.token_hex(32)
-            admin_table.create_entity({
-                'PartitionKey': 'admin',
-                'RowKey': 'admin',
-                'username': username,
-                'password': generate_password_hash(password),
-                'token': token
-            })
-
-            # Set session variables
+            admin = AdminUser(
+                username='admin',
+                password_hash=generate_password_hash(password),
+                token=token,
+            )
+            db.session.add(admin)
+            db.session.commit()
             session['is_admin'] = True
             session['admin_token'] = token
-
             return jsonify({'redirect': url_for('admin')})
 
-        except Exception as e:
-            print(f"Admin login error: {str(e)}")
-            return jsonify({'error': 'Server error'}), 500
+        if username == admin.username and check_password_hash(admin.password_hash, password):
+            admin.token = secrets.token_hex(32)
+            db.session.commit()
+            session['is_admin'] = True
+            session['admin_token'] = admin.token
+            return jsonify({'redirect': url_for('admin')})
+        return jsonify({'error': 'Invalid credentials'}), 401
+
     @app.route('/admin')
     def admin():
-        # Verify admin session
         if not session.get('is_admin'):
             return redirect(url_for('admin_login'))
-
-        admin_table = tables['users']['client']
-        try:
-            admin_user = admin_table.get_entity('admin', 'admin')
-            if session.get('admin_token') != admin_user['token']:
-                session.clear()
-                return redirect(url_for('admin_login'))
-        except:
+        admin_user = db.session.get(AdminUser, 'admin')
+        if admin_user is None or session.get('admin_token') != admin_user.token:
             session.clear()
             return redirect(url_for('admin_login'))
-
         return render_template('admin.html')
+
     @app.route('/api/admin/check', methods=['GET'])
     def check_admin_exists():
-        try:
-            admin_table = tables['users']['client']
-            try:
-                admin_table.get_entity('admin', 'admin')
-                return jsonify({'exists': True})
-            except ResourceNotFoundError:
-                return jsonify({'exists': False})
-        except Exception as e:
-            return jsonify({'error': str(e)}), 500
+        exists = db.session.get(AdminUser, 'admin') is not None
+        return jsonify({'exists': exists})
+
     @app.route('/api/admin/setup', methods=['POST'])
     def setup_admin():
-        try:
-            data = request.json
-            username = data.get('username')
-            password = data.get('password')
+        data = request.get_json(silent=True) or {}
+        username = data.get('username')
+        password = data.get('password')
+        if not username or not password:
+            return jsonify({'error': 'Missing credentials'}), 400
 
-            if not username or not password:
-                return jsonify({'error': 'Missing credentials'}), 400
+        if db.session.get(AdminUser, 'admin') is not None:
+            return jsonify({'error': 'Admin already exists'}), 400
 
-            admin_table = tables['users']['client']
-
-            # Check if admin already exists
-            try:
-                admin_table.get_entity('admin', 'admin')
-                return jsonify({'error': 'Admin already exists'}), 400
-            except ResourceNotFoundError:
-                # Create new admin user
-                admin_token = secrets.token_hex(32)
-                admin_table.create_entity({
-                    'PartitionKey': 'admin',
-                    'RowKey': 'admin',
-                    'username': username,
-                    'password': generate_password_hash(password),
-                    'token': admin_token
-                })
-
-                # Set session variables
-                session['is_admin'] = True
-                session['admin_token'] = admin_token
-
-                return jsonify({'redirect': url_for('admin')})
-
-        except Exception as e:
-            return jsonify({'error': str(e)}), 500
+        token = secrets.token_hex(32)
+        admin = AdminUser(
+            username='admin',
+            password_hash=generate_password_hash(password),
+            token=token,
+        )
+        db.session.add(admin)
+        db.session.commit()
+        session['is_admin'] = True
+        session['admin_token'] = token
+        return jsonify({'redirect': url_for('admin')})
 
     @app.route('/questions')
     def questions():
@@ -437,98 +218,88 @@ def webserver(devMode=False):
     def scores():
         return render_template('scores.html')
 
-    # WebPubSub event handlers
     @app.route('/api/submit_answer', methods=['POST'])
     def handle_answer():
         try:
-            data = request.json
+            data = request.get_json(silent=True) or {}
             team = data.get('team')
             answer = data.get('answer')
-            question_id = data.get('question_id')
+            question_id = str(data.get('question_id'))
             timestamp = data.get('timestamp')
 
-            # Store the answer
-            scores_table.upsert_entity({
-                'PartitionKey': question_id,
-                'RowKey': team,
-                'answer': answer,
-                'timestamp': timestamp,
-                'score': calculate_score(team, answer, timestamp)
+            score_value = calculate_score(team, answer, timestamp)
+            entry = Score(
+                question_id=question_id,
+                team=team,
+                answer=answer,
+                timestamp=timestamp,
+                score=score_value,
+            )
+            db.session.add(entry)
+            db.session.commit()
+
+            socketio.emit('score_update', {
+                'team': team,
+                'new_score': score_value,
+                'question_id': question_id,
             })
 
-            # Broadcast score update using Web PubSub
-            pubsub_client.send_to_all(
-                hub="trivia",
-                content=json.dumps({
-                    'event': 'score_update',
-                    'data': {
-                        'team': team,
-                        'new_score': calculate_score(team, answer, timestamp)
-                    }
-                })
-            )
-
             return jsonify({'status': 'success'})
-
         except Exception as e:
-            print(f"Error handling answer: {str(e)}")
+            app.logger.exception("Error handling answer")
             return jsonify({'error': str(e)}), 500
 
-    # API endpoints
     @app.route('/api/questions/current', methods=['GET'])
     def get_current_question():
-        try:
-            query = questions_table.query_entities(
-                query_filter="PartitionKey eq 'current'"
-            )
-            questions = list(query)
-            if questions:
-                return jsonify(questions[0])
+        q = db.session.scalar(select(Question).where(Question.is_current.is_(True)))
+        if q is None:
             return jsonify({'error': 'No current question'}), 404
-        except Exception as e:
-            return jsonify({'error': str(e)}), 500
+        return jsonify({
+            'id': q.id,
+            'text': q.text,
+            'answer': q.answer,
+        })
 
     @app.route('/api/scores', methods=['GET'])
     def get_scores():
-        try:
-            scores = []
-            query = scores_table.query_entities()
-            for score in query:
-                scores.append({
-                    'team': score['RowKey'],
-                    'question': score['PartitionKey'],
-                    'score': score['score'],
-                    'timestamp': score['timestamp']
-                })
-            return jsonify(scores)
-        except Exception as e:
-            return jsonify({'error': str(e)}), 500
+        entries = db.session.scalars(select(Score)).all()
+        return jsonify([
+            {
+                'team': e.team,
+                'question': e.question_id,
+                'score': e.score,
+                'timestamp': e.timestamp,
+            }
+            for e in entries
+        ])
 
-    # Start Web PubSub tunnel for local development
-    if devMode:
-        print("Starting Web PubSub tunnel...")
-        command = f'awps-tunnel run --hub trivia --upstream http://localhost:8080 --connection {wps_connection_string}'
-        print(command)
-        #threadedCommand(command)
+    @app.route('/healthz')
+    def healthz():
+        return jsonify({'status': 'ok'}), 200
+
+    # ---- Socket.IO events ----
+    @socketio.on('connect')
+    def _on_connect():
+        app.logger.info(f"Socket connected: {request.sid}")
+
+    @socketio.on('disconnect')
+    def _on_disconnect():
+        app.logger.info(f"Socket disconnected: {request.sid}")
+
+    @socketio.on('question')
+    def _on_question(message):
+        # Admin pushes a question; broadcast to everyone
+        socketio.emit('question', message)
 
     return app
 
+
+setup_logging()
+app = create_app()
+
+
 if __name__ == '__main__':
-    try:
-
-        # Get application instance
-        app = webserver(devMode=True)
-
-        # Get configuration from environment variables
-        port = int(os.getenv('PORT', 8080))
-        host = os.getenv('HOST', '127.0.0.1')
-
-        # Start the app
-        print(f"Starting app on http://{host}:{port}/")
-        app.run(host=host, port=port, debug=False)
-    except Exception as e:
-        print(f"Failed to start server: {str(e)}")
-        raise
-else:
-    setup_logging()
-    app = webserver()
+    port = int(os.getenv('PORT', 8080))
+    host = os.getenv('HOST', '127.0.0.1')
+    print(f"Starting app on http://{host}:{port}/")
+    socketio.run(app, host=host, port=port, debug=False)
