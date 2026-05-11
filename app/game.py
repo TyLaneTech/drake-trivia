@@ -272,7 +272,11 @@ def end_game(game: Game) -> None:
     game.ended_at = datetime.utcnow()
     db.session.commit()
     # Compute awards
-    payload = {'leaderboard': leaderboard_for(game), 'awards': compute_awards(game)}
+    payload = {
+        'game_id': game.id,
+        'leaderboard': leaderboard_for(game),
+        'awards': compute_awards(game),
+    }
     socketio.emit('finale', payload)
 
 

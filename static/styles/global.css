@@ -326,6 +326,9 @@ kbd {
 .btn-success{ --b-bg: var(--success); --b-fg: #0a0a14; --b-glow: var(--success-glow); }
 .btn-danger { --b-bg: rgba(248, 113, 113, 0.12); --b-fg: var(--danger); --b-glow: transparent; border: 1px solid rgba(248,113,113,0.3); box-shadow: none; }
 .btn-danger:hover { --b-bg: rgba(248, 113, 113, 0.18); }
+.btn-recap  { --b-bg: rgba(255, 255, 255, 0.06); --b-fg: var(--text); --b-glow: transparent; border: 1px solid var(--border-2); box-shadow: none; margin-top: 18px; }
+.btn-recap:hover { --b-bg: rgba(255, 255, 255, 0.10); border-color: var(--accent); --b-fg: var(--accent); }
+.btn-recap .icon { width: 18px; height: 18px; }
 
 .btn-xl {
     padding: 16px 32px;

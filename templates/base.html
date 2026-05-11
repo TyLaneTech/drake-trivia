@@ -48,6 +48,10 @@
                 <svg class="icon"><use href="/static/images/sprite.svg#i-trophy"/></svg>
                 <span>Scoreboard</span>
             </a>
+            <a href="{{ url_for('play.recap_latest') }}" class="nav-link {% if request.endpoint in ('play.recap_latest','play.recap_view') %}is-active{% endif %}">
+                <svg class="icon"><use href="/static/images/sprite.svg#i-reveal"/></svg>
+                <span>Recap</span>
+            </a>
             {% if is_admin %}
             <a href="{{ url_for('admin.dashboard') }}" class="nav-link {% if request.endpoint == 'admin.dashboard' %}is-active{% endif %}">
                 <svg class="icon"><use href="/static/images/sprite.svg#i-sparkle"/></svg>

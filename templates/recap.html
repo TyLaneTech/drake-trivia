@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Game recap — Drake Trivia{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='styles/recap.css') }}">{% endblock %}
+
+{% block content %}
+<div class="recap-shell">
+    {% if no_games %}
+    <section class="card recap-empty">
+        <div class="recap-empty-icon">
+            <svg class="icon icon-3xl"><use href="/static/images/sprite.svg#i-trophy"/></svg>
+        </div>
+        <h1>No games to recap yet</h1>
+        <p>Once a game ends, it will show up here so you can revisit the standings and every question.</p>
+        <a href="{{ url_for('auth.login') }}" class="btn">Start a game</a>
+    </section>
+    {% else %}
+    <header class="recap-head">
+        <span class="recap-eyebrow">Game recap</span>
+        <h1 class="recap-title" id="recap-title">Loading…</h1>
+        <p class="recap-meta" id="recap-meta"></p>
+        <div class="recap-other">
+            <details>
+                <summary>Other recent games</summary>
+                <ul class="recap-other-list" id="recap-other-list">
+                    <li class="recap-other-empty">Loading…</li>
+                </ul>
+            </details>
+        </div>
+    </header>
+
+    <!-- Final standings -->
+    <section class="recap-section">
+        <h2 class="recap-section-title">
+            <svg class="icon"><use href="/static/images/sprite.svg#i-trophy"/></svg>
+            Final standings
+        </h2>
+        <ol class="recap-standings" id="recap-standings">
+            <li class="recap-loading">Loading…</li>
+        </ol>
+    </section>
+
+    <!-- Awards -->
+    <section class="recap-section" id="recap-awards-section" hidden>
+        <h2 class="recap-section-title">
+            <svg class="icon"><use href="/static/images/sprite.svg#i-medal"/></svg>
+            Awards
+        </h2>
+        <ul class="recap-awards" id="recap-awards"></ul>
+    </section>
+
+    <!-- Round-by-round breakdown -->
+    <section class="recap-section">
+        <h2 class="recap-section-title">
+            <svg class="icon"><use href="/static/images/sprite.svg#i-reveal"/></svg>
+            Round by round
+        </h2>
+        <div class="recap-rounds-toolbar">
+            <span class="recap-rounds-count" id="recap-rounds-count"></span>
+            <button class="btn btn-ghost btn-sm" type="button" id="recap-toggle-all">Expand all</button>
+        </div>
+        <ol class="recap-rounds" id="recap-rounds">
+            <li class="recap-loading">Loading…</li>
+        </ol>
+    </section>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if not no_games %}
+<script>window.RECAP_GAME_ID = {{ game_id|tojson }};</script>
+<script src="{{ url_for('static', filename='js/recap.js') }}"></script>
+{% endif %}
+{% endblock %}

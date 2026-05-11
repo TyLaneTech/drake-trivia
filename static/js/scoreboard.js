@@ -215,6 +215,8 @@
             `;
             ui.awards.appendChild(li);
         });
+        const link = document.getElementById('board-finale-recap');
+        if (link && payload.game_id) link.href = `/recap/${payload.game_id}`;
         setPhase('Finale');
         showStage('finale');
     };

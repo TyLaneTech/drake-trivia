@@ -334,6 +334,8 @@
             `;
             ui.finaleLeader.appendChild(li);
         });
+        const recapLink = document.getElementById('finale-recap-link');
+        if (recapLink && payload.game_id) recapLink.href = `/recap/${payload.game_id}`;
         showState('finale');
     };
 
