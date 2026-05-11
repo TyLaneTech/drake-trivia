@@ -17,8 +17,20 @@
 
     <link rel="stylesheet" href="{{ url_for('static', filename='styles/global.css') }}">
     {% block extra_css %}{% endblock %}
+    {% if team_name %}
+    <style>
+        /* Tint the whole app in the active team's color while a team is signed in. */
+        :root {
+            --accent:           {{ session.get('team_color', '#ff6b4a') }};
+            --accent-soft:      color-mix(in oklab, var(--accent) 75%, white);
+            --accent-deep:      color-mix(in oklab, var(--accent) 75%, black);
+            --accent-glow:      color-mix(in oklab, var(--accent) 40%, transparent);
+            --accent-soft-glow: color-mix(in oklab, var(--accent) 14%, transparent);
+        }
+    </style>
+    {% endif %}
 </head>
-<body class="{% block body_class %}{% endblock %}">
+<body class="{% block body_class %}{% endblock %}{% if team_name %} body-team-themed{% endif %}">
     {% block header %}
     <header class="topbar">
         <a href="{{ url_for('auth.index') }}" class="brand">
@@ -28,7 +40,7 @@
         <nav class="topbar-nav" aria-label="Primary">
             {% if team_name %}
             <a href="{{ url_for('play.play') }}" class="nav-link {% if request.endpoint == 'play.play' %}is-active{% endif %}">
-                <svg class="icon"><use href="/static/images/sprite.svg#i-play"/></svg>
+                <svg class="icon"><use href="/static/images/sprite.svg#i-{{ session.get('team_emoji', 'target') }}"/></svg>
                 <span>Play</span>
             </a>
             {% endif %}
