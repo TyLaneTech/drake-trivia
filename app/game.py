@@ -305,7 +305,15 @@ def start_round(game: Game, question_id: int, app) -> Round:
     return round_
 
 
-def lock_round(round_: Round, app=None) -> None:
+def lock_round(round_: Round, app=None, immediate_reveal: bool = False) -> None:
+    """Move the round into the locked phase.
+
+    If `immediate_reveal=True`, also runs scoring + reveal in the same call
+    without emitting a separate `round_locked` event. Solo auto-host games
+    auto-trigger this too — there's nothing a "Pencils down" pause would
+    communicate when the only player just answered. Clients see asking →
+    revealed in a single step.
+    """
     if round_.phase != 'asking':
         return
     round_.phase = 'locked'
@@ -313,6 +321,10 @@ def lock_round(round_: Round, app=None) -> None:
     round_.game.phase = 'locked'
     game = round_.game
     db.session.commit()
+    skip_locked = immediate_reveal or (game.auto_host and total_teams_in_game(game) <= 1)
+    if skip_locked:
+        reveal_round(round_, app=app)
+        return
     socketio.emit('round_locked', {'round_id': round_.id})
     broadcast_state(game)
     # Auto-reveal once the host configured a delay
