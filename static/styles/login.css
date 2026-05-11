@@ -196,7 +196,7 @@
     transform: scale(1.06);
     box-shadow: 0 0 0 2px var(--paper-1), 0 0 0 3px var(--ink);
 }
-.emblem .icon { width: 1.4em; height: 1.4em; vertical-align: middle; }
+.emblem .icon { width: 32px; height: 32px; }
 @media (max-width: 480px) {
     .emblems { grid-template-columns: repeat(4, 1fr); }
 }
