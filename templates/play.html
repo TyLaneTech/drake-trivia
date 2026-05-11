@@ -5,6 +5,25 @@
 {% block content %}
 <div class="play-shell">
 
+    <!-- Persistent standings — shown across all active gameplay phases -->
+    <aside class="standings-strip" id="standings-strip" hidden aria-label="Your standings">
+        <span class="standings-emblem" id="strip-emblem">
+            <svg class="icon"><use href="/static/images/sprite.svg#i-target"/></svg>
+        </span>
+        <span class="standings-name" id="strip-name">{{ team_name }}</span>
+        <span class="standings-divider"></span>
+        <span class="standings-cell">
+            <span class="standings-cell-num" id="strip-rank">—</span>
+            <span class="standings-cell-label">place</span>
+        </span>
+        <span class="standings-divider"></span>
+        <span class="standings-cell">
+            <span class="standings-cell-num" id="strip-score">0</span>
+            <span class="standings-cell-label">pts</span>
+        </span>
+        <span class="standings-of">of <span id="strip-total">—</span></span>
+    </aside>
+
     <!-- WAITING -->
     <section class="card play-card" id="state-waiting">
         <div class="play-eyebrow">

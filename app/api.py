@@ -1,8 +1,11 @@
 """Player-facing JSON API."""
 
 from flask import Blueprint, jsonify, session
+from sqlalchemy import select
 
+from . import db
 from .game import game_snapshot, get_active_game
+from .models import Question
 
 
 api_bp = Blueprint('api', __name__)
@@ -22,3 +25,15 @@ def state():
         'team_emoji': session.get('team_emoji'),
     }
     return jsonify(payload)
+
+
+@api_bp.get('/api/categories')
+def categories():
+    """Distinct question categories + their counts. Public — solo-mode setup
+    populates its dropdown from here."""
+    rows = db.session.execute(
+        select(Question.category, db.func.count(Question.id))
+        .group_by(Question.category)
+        .order_by(Question.category.asc())
+    ).all()
+    return jsonify([{'category': c, 'count': n} for c, n in rows])

@@ -7,6 +7,69 @@
     gap: 18px;
 }
 
+/* ---------------- Persistent standings strip ---------------- */
+.standings-strip {
+    width: 100%;
+    max-width: 560px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    backdrop-filter: blur(20px) saturate(140%);
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
+}
+.standings-emblem { display: inline-flex; }
+.standings-emblem .icon { width: 18px; height: 18px; }
+.standings-name {
+    font-weight: 700;
+    color: var(--text);
+    font-size: 0.92rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 32%;
+}
+.standings-divider {
+    width: 1px;
+    height: 18px;
+    background: var(--border-2);
+    flex-shrink: 0;
+}
+.standings-cell {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 5px;
+    flex-shrink: 0;
+}
+.standings-cell-num {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    color: var(--accent);
+    font-size: 1.05rem;
+    line-height: 1;
+}
+.standings-cell-label {
+    font-size: 0.7rem;
+    color: var(--text-3);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 600;
+}
+.standings-of {
+    margin-left: auto;
+    color: var(--text-3);
+    font-size: 0.78rem;
+    font-family: var(--font-mono);
+}
+@media (max-width: 480px) {
+    .standings-strip { gap: 8px; padding: 8px 12px; }
+    .standings-name { font-size: 0.86rem; max-width: 28%; }
+    .standings-cell-num { font-size: 0.96rem; }
+}
+
 .play-card {
     width: 100%;
     max-width: 560px;

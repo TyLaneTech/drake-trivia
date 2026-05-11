@@ -15,12 +15,36 @@
 
         {% if error %}<div class="form-error">{{ error }}</div>{% endif %}
 
-        <form method="post" class="login-form" id="login-form">
+        <div class="mode-tabs" role="tablist" aria-label="Play mode">
+            <button type="button" class="mode-tab is-active" role="tab" data-mode="join">
+                <span class="mode-tab-title">Join a game</span>
+                <span class="mode-tab-sub">Hosted by someone else</span>
+            </button>
+            <button type="button" class="mode-tab" role="tab" data-mode="solo">
+                <span class="mode-tab-title">Play solo</span>
+                <span class="mode-tab-sub">Auto-host, just you</span>
+            </button>
+        </div>
+
+        <form method="post" class="login-form" id="login-form" data-mode="join">
             <label class="field">
                 <span class="field-label">Team name</span>
                 <input type="text" name="team_name" id="team-name-input" required maxlength="80"
                        autocomplete="off" placeholder="The Brain Trust" autofocus>
             </label>
+
+            <div class="solo-fields" id="solo-fields" hidden>
+                <label class="field">
+                    <span class="field-label">Category</span>
+                    <select id="solo-category" name="category_filter">
+                        <option value="">All categories (mixed)</option>
+                    </select>
+                </label>
+                <label class="field">
+                    <span class="field-label">Questions</span>
+                    <input type="number" id="solo-count" name="target_question_count" min="1" max="200" value="10">
+                </label>
+            </div>
 
             <div class="field">
                 <span class="field-label">Color</span>
@@ -66,10 +90,11 @@
                 </div>
             </div>
 
-            <button type="submit" class="btn btn-xl login-btn">
-                Join the game
+            <button type="submit" class="btn btn-xl login-btn" id="login-submit">
+                <span class="login-btn-label" id="login-btn-label">Join the game</span>
                 <svg class="icon"><use href="/static/images/sprite.svg#i-arrow-right"/></svg>
             </button>
+            <div class="form-error" id="solo-error" hidden></div>
         </form>
 
         {% if existing_teams %}

@@ -3,14 +3,24 @@
 from __future__ import annotations
 
 import secrets
+from datetime import datetime
 
-from flask import Blueprint, jsonify, redirect, render_template, request, session, url_for
+from flask import Blueprint, current_app, jsonify, redirect, render_template, request, session, url_for
 from sqlalchemy import select
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from . import db
-from .game import broadcast_state, ensure_participant, get_or_create_active_game
-from .models import AdminUser, Team
+from .game import (
+    broadcast_state,
+    ensure_participant,
+    get_active_game,
+    get_or_create_active_game,
+    start_round,
+)
+from .models import AdminUser, Game, Question, Team
+
+
+VALID_EMBLEMS = {'target','bolt','shield','crown','flame','anchor','mountain','star','moon','leaf','diamond','eye'}
 
 
 auth_bp = Blueprint('auth', __name__)
@@ -33,7 +43,7 @@ def logout():
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
-    valid_emblems = {'target','bolt','shield','crown','flame','anchor','mountain','star','moon','leaf','diamond','eye'}
+    valid_emblems = VALID_EMBLEMS
     if request.method == 'POST':
         name = (request.form.get('team_name') or '').strip()
         color = (request.form.get('color') or '#8b1d2a').strip()[:16]
@@ -68,6 +78,99 @@ def login():
 
     teams = db.session.scalars(select(Team).order_by(Team.created_at.asc())).all()
     return render_template('login.html', existing_teams=[t.to_dict() for t in teams])
+
+
+@auth_bp.post('/api/solo/start')
+def solo_start():
+    """Start a solo Auto-Host game with the caller as the only team.
+
+    Ends any active game and creates a fresh one with `auto_host=true`. Picks
+    the first question and starts round 1 so the player lands on a live
+    question on /play.
+    """
+    data = request.get_json(silent=True) or {}
+    name = (data.get('team_name') or '').strip()
+    color = (data.get('color') or '#ff6b4a').strip()[:16]
+    emoji = (data.get('emoji') or 'target').strip().lower()[:32]
+    if emoji not in VALID_EMBLEMS:
+        emoji = 'target'
+    if not name:
+        return jsonify({'error': 'Team name is required.'}), 400
+    if len(name) > 80:
+        return jsonify({'error': 'Team name is too long (max 80 chars).'}), 400
+
+    category = (data.get('category_filter') or '').strip() or None
+    try:
+        target_count = int(data.get('target_question_count') or 10)
+    except (TypeError, ValueError):
+        target_count = 10
+    target_count = max(1, min(target_count, 200))
+
+    # Reject if there are no questions in the requested category at all.
+    q_check = select(db.func.count(Question.id))
+    if category:
+        q_check = q_check.where(Question.category == category)
+    available = db.session.scalar(q_check) or 0
+    if available < 1:
+        msg = (f'No questions available in "{category}".' if category
+               else 'No questions in the bank yet — ask the host to import some.')
+        return jsonify({'error': msg}), 400
+
+    # Create or update the team
+    team = db.session.scalar(select(Team).where(Team.name == name))
+    if team is None:
+        team = Team(name=name, color=color, emoji=emoji)
+        db.session.add(team)
+    else:
+        team.color = color
+        team.emoji = emoji
+    db.session.commit()
+
+    # End any active game so we start fresh
+    existing = get_active_game()
+    if existing is not None:
+        existing.state = 'ended'
+        existing.ended_at = datetime.utcnow()
+        db.session.commit()
+
+    # Fresh auto-host game configured for this player
+    game = Game(
+        name=f'{name} — solo run',
+        state='active',
+        phase='waiting',
+        started_at=datetime.utcnow(),
+        auto_host=True,
+        target_question_count=target_count,
+        category_filter=category,
+        # With only one team in the game, "all teams ready" === this player
+        # tapping Ready, so no countdown is needed. Leave as null.
+        auto_next_delay_s=None,
+        auto_reveal_delay_s=3,
+    )
+    db.session.add(game)
+    db.session.commit()
+    ensure_participant(game, team)
+
+    session.permanent = True
+    session['team_name'] = team.name
+    session['team_id'] = team.id
+    session['team_color'] = team.color
+    session['team_emoji'] = team.emoji
+
+    # Pick the first question and start round 1 right away so the player
+    # lands on a live question.
+    q_select = select(Question)
+    if category:
+        q_select = q_select.where(Question.category == category)
+    first_q = db.session.scalar(q_select.order_by(db.func.random()))
+    if first_q is None:
+        return jsonify({'error': 'Could not pick a starting question.'}), 500
+    try:
+        start_round(game, first_q.id, current_app._get_current_object())
+    except RuntimeError as e:
+        return jsonify({'error': str(e)}), 400
+
+    return jsonify({'ok': True, 'redirect': url_for('play.play')})
 
 
 @auth_bp.route('/admin-login', methods=['GET', 'POST'])

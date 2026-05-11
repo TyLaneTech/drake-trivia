@@ -62,6 +62,73 @@
     text-align: center;
 }
 
+/* ---------------- Mode tabs: Join vs Solo ---------------- */
+.mode-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 22px;
+    padding: 6px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+}
+.mode-tab {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 10px 14px;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    color: var(--text-2);
+    text-align: left;
+    transition: background var(--t-fast), color var(--t-fast), transform var(--t-fast);
+}
+.mode-tab:hover { color: var(--text); background: rgba(255, 255, 255, 0.04); }
+.mode-tab.is-active {
+    background: var(--accent);
+    color: #0a0a14;
+    box-shadow: 0 8px 22px var(--accent-glow);
+}
+.mode-tab-title { font-weight: 700; font-size: 0.96rem; line-height: 1.15; }
+.mode-tab-sub { font-size: 0.74rem; opacity: 0.78; line-height: 1.15; }
+.mode-tab.is-active .mode-tab-sub { opacity: 0.7; }
+
+/* ---------------- Solo-only fields ---------------- */
+.solo-fields {
+    display: grid;
+    grid-template-columns: 1fr 110px;
+    gap: 14px;
+    padding: 14px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    animation: fade-up 280ms cubic-bezier(.22, 1, .36, 1) both;
+}
+.solo-fields select,
+.solo-fields input[type="number"] {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border-2);
+    color: var(--text);
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 0.96rem;
+    font-family: inherit;
+    width: 100%;
+}
+.solo-fields input[type="number"] { font-family: var(--font-mono); }
+.solo-fields select:focus,
+.solo-fields input:focus {
+    outline: none;
+    border-color: var(--accent);
+    background: rgba(255, 255, 255, 0.06);
+}
+@media (max-width: 420px) {
+    .solo-fields { grid-template-columns: 1fr; }
+}
+
 .login-form { display: flex; flex-direction: column; gap: 18px; }
 
 .swatches {

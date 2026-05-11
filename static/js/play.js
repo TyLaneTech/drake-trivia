@@ -17,6 +17,13 @@
         myScore: document.getElementById('my-score'),
         totalTeams: document.getElementById('total-teams'),
 
+        standingsStrip: document.getElementById('standings-strip'),
+        stripEmblem: document.getElementById('strip-emblem'),
+        stripName: document.getElementById('strip-name'),
+        stripRank: document.getElementById('strip-rank'),
+        stripScore: document.getElementById('strip-score'),
+        stripTotal: document.getElementById('strip-total'),
+
         roundOfStrip: document.getElementById('round-of-strip'),
         roundOfNow: document.getElementById('round-of-now'),
         roundOfTotal: document.getElementById('round-of-total'),
@@ -68,6 +75,11 @@
     /* ---------- Helpers ---------- */
     const showState = (key) => {
         Object.entries(states).forEach(([k, el]) => { el.hidden = (k !== key); });
+        // Standings strip is visible during in-game phases only — the waiting
+        // card already shows a bigger version, and finale gets the leaderboard.
+        if (ui.standingsStrip) {
+            ui.standingsStrip.hidden = !(key === 'asking' || key === 'locked' || key === 'revealed');
+        }
     };
     const setConn = (online) => {
         ui.conn.textContent = online ? 'connected' : 'offline';
@@ -100,15 +112,29 @@
     const updateMyRankFromLeaderboard = (leaderboard) => {
         if (!me || !me.team_id || !leaderboard || !leaderboard.length) {
             ui.myRankCard.hidden = true;
+            ui.stripName.textContent = (me && me.team_name) || '';
+            ui.stripRank.textContent = '—';
+            ui.stripScore.textContent = '0';
+            ui.stripTotal.textContent = '—';
             return;
         }
         const mine = leaderboard.find(r => r.team_id === me.team_id);
-        if (!mine) { ui.myRankCard.hidden = true; return; }
+        if (!mine) {
+            ui.myRankCard.hidden = true;
+            return;
+        }
         ui.myRankCard.hidden = false;
         ui.rankTile.textContent = mine.rank;
         ui.myScore.textContent = mine.score;
         ui.totalTeams.textContent = leaderboard.length;
         lastTotalScore = mine.score;
+        // Always-on strip mirrors these numbers
+        ui.stripName.textContent = mine.team_name;
+        ui.stripRank.textContent = mine.rank;
+        ui.stripScore.textContent = mine.score;
+        ui.stripTotal.textContent = leaderboard.length;
+        ui.stripEmblem.style.color = mine.color || 'var(--accent)';
+        ui.stripEmblem.innerHTML = `<svg class="icon"><use href="/static/images/sprite.svg#i-${mine.emoji || 'target'}"/></svg>`;
     };
 
     const renderRoundOf = () => {
