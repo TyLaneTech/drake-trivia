@@ -5,10 +5,10 @@
 {% block content %}
 <div class="admin-shell">
     <nav class="admin-tabs" role="tablist">
-        <button class="tab active" data-tab="live" role="tab">🎮 Live Game</button>
-        <button class="tab" data-tab="questions" role="tab">❓ Questions</button>
-        <button class="tab" data-tab="teams" role="tab">👥 Teams</button>
-        <button class="tab" data-tab="settings" role="tab">⚙️ Settings</button>
+        <button class="tab active" data-tab="live" role="tab">Live Game</button>
+        <button class="tab" data-tab="questions" role="tab">Questions</button>
+        <button class="tab" data-tab="teams" role="tab">Teams</button>
+        <button class="tab" data-tab="settings" role="tab">Settings</button>
     </nav>
 
     <!-- LIVE TAB -->
@@ -48,10 +48,22 @@
                 </div>
 
                 <div class="control-row">
-                    <button class="primary-btn" id="btn-start-round">▶︎ Auto-pick next</button>
-                    <button class="ghost-btn" id="btn-lock">🔒 Lock answers</button>
-                    <button class="primary-btn primary-btn-alt" id="btn-reveal">✨ Reveal</button>
-                    <button class="ghost-btn ghost-btn-danger" id="btn-end-game">⏹ End game</button>
+                    <button class="btn btn-ruby" id="btn-start-round">
+                        <svg class="icon"><use href="/static/images/sprite.svg#i-play"/></svg>
+                        Next Round
+                    </button>
+                    <button class="btn btn-ghost" id="btn-lock">
+                        <svg class="icon"><use href="/static/images/sprite.svg#i-lock"/></svg>
+                        Lock
+                    </button>
+                    <button class="btn btn-mustard" id="btn-reveal">
+                        <svg class="icon"><use href="/static/images/sprite.svg#i-reveal"/></svg>
+                        Reveal
+                    </button>
+                    <button class="btn btn-danger" id="btn-end-game">
+                        <svg class="icon"><use href="/static/images/sprite.svg#i-cross"/></svg>
+                        End Game
+                    </button>
                 </div>
                 <div class="hint">Or push a specific question from the Questions tab.</div>
             </div>

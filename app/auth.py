@@ -33,10 +33,13 @@ def logout():
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
+    valid_emblems = {'target','bolt','shield','crown','flame','anchor','mountain','star','moon','leaf','diamond','eye'}
     if request.method == 'POST':
         name = (request.form.get('team_name') or '').strip()
-        color = (request.form.get('color') or '#d61f2b').strip()[:16]
-        emoji = (request.form.get('emoji') or '🎯').strip()[:8]
+        color = (request.form.get('color') or '#8b1d2a').strip()[:16]
+        emoji = (request.form.get('emoji') or 'target').strip().lower()[:32]
+        if emoji not in valid_emblems:
+            emoji = 'target'
         if not name:
             return render_template('login.html', error='Enter a team name to continue.')
         if len(name) > 80:

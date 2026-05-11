@@ -1,101 +1,132 @@
 {% extends "base.html" %}
-{% block title %}Scoreboard — Drake Trivia{% endblock %}
+{% block title %}The Almanac — Drake Trivia{% endblock %}
 {% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='styles/scoreboard.css') }}">{% endblock %}
 {% block body_class %}scoreboard-body{% endblock %}
 {% block header %}{% endblock %}
 
 {% block content %}
-<div class="board-shell" id="board-shell">
+<div class="board-shell">
 
-    <header class="board-head">
-        <img src="{{ url_for('static', filename='images/d-logo.png') }}" alt="" class="board-logo">
-        <div class="board-title">
-            <h1 id="board-game-name">Drake Trivia</h1>
-            <span class="board-sub" id="board-sub">Loading…</span>
+    <!-- MASTHEAD -->
+    <header class="masthead">
+        <div class="masthead-meta-left">
+            <div class="edition-stamp">VOL. I · NO. <span id="board-round-num">—</span></div>
+            <div class="edition-place">Tournament Hall</div>
         </div>
-        <div class="board-round-indicator">
-            <span class="board-round-label">ROUND</span>
-            <span class="board-round-num" id="board-round-num">—</span>
+
+        <div class="masthead-center">
+            <div class="masthead-est">— EST. MMXXVI —</div>
+            <h1 class="masthead-title">
+                <span class="mast-the">The</span>
+                <span class="mast-main"><em>Drake</em> Trivia</span>
+            </h1>
+            <div class="masthead-sub">An Almanac of the Evening&rsquo;s Standings</div>
+        </div>
+
+        <div class="masthead-meta-right">
+            <div class="edition-stamp">PHASE</div>
+            <div class="edition-place" id="board-phase">Standby</div>
         </div>
     </header>
 
-    <!-- WAITING / BETWEEN ROUNDS: leaderboard front-and-center -->
+    <div class="masthead-rule"></div>
+
+    <!-- WAITING / BETWEEN ROUNDS -->
     <section class="board-stage" id="stage-waiting">
-        <div class="board-leaderboard-big" id="board-leaderboard-big">
-            <h2 class="board-leaderboard-title">Tournament Standings</h2>
-            <ol class="board-leader-list" id="board-leader-list">
-                <li class="board-leader-empty">Awaiting teams…</li>
+        <div class="standings-wrap">
+            <div class="ribbon ribbon-ruby standings-ribbon">Tournament Standings</div>
+            <ol class="standings" id="board-leader-list">
+                <li class="standings-empty">Enrollment in progress — awaiting teams…</li>
             </ol>
         </div>
-        <p class="board-status-text" id="board-status-text">Next question coming up…</p>
+        <div class="ornament"><span id="board-status-text">The next question is being prepared</span></div>
     </section>
 
-    <!-- ASKING: show the question + countdown + answer count -->
+    <!-- ASKING -->
     <section class="board-stage" id="stage-asking" hidden>
-        <div class="board-question-wrap">
-            <div class="board-tags">
-                <span class="board-tag" id="board-category">Category</span>
-                <span class="board-tag board-tag-difficulty" id="board-difficulty">medium</span>
-                <span class="board-tag board-tag-points" id="board-points">+5</span>
+        <div class="ask-grid">
+            <div class="ask-main">
+                <div class="round-banner">
+                    <span class="round-banner-tag">QUESTION №</span>
+                    <span class="round-banner-num" id="ask-round-num">—</span>
+                </div>
+                <div class="ask-tags">
+                    <span class="tag tag-category" id="board-category">Category</span>
+                    <span class="tag tag-difficulty" id="board-difficulty">medium</span>
+                    <span class="tag tag-points" id="board-points">+5</span>
+                </div>
+                <h2 class="ask-text" id="board-question-text">…</h2>
+                <ol class="ask-choices" id="board-choices"></ol>
             </div>
-            <h2 class="board-question-text" id="board-question-text"></h2>
-            <ul class="board-choices" id="board-choices"></ul>
-        </div>
-        <div class="board-side">
-            <div class="board-timer-big">
-                <svg viewBox="0 0 100 100" class="board-timer-ring">
-                    <circle class="board-timer-bg" cx="50" cy="50" r="46"/>
-                    <circle class="board-timer-fg" cx="50" cy="50" r="46" id="board-timer-fg"/>
-                </svg>
-                <div class="board-timer-num" id="board-timer-num">--</div>
-            </div>
-            <div class="board-answer-count">
-                <div class="board-count-bignum"><span id="board-count-done">0</span>/<span id="board-count-total">0</span></div>
-                <div class="board-count-label">teams answered</div>
-            </div>
+            <aside class="ask-aside">
+                <div class="board-timer-wrap" id="board-timer-wrap">
+                    <svg viewBox="0 0 120 120" class="board-timer-ring">
+                        <circle class="board-timer-bg" cx="60" cy="60" r="54"/>
+                        <circle class="board-timer-fg" cx="60" cy="60" r="54" id="board-timer-fg"/>
+                    </svg>
+                    <div class="board-timer-num" id="board-timer-num">--</div>
+                    <div class="board-timer-label">SECONDS</div>
+                </div>
+
+                <div class="answer-count-card">
+                    <div class="ac-eyebrow">Returned</div>
+                    <div class="ac-numbers">
+                        <span class="ac-done" id="board-count-done">0</span>
+                        <span class="ac-slash">/</span>
+                        <span class="ac-total" id="board-count-total">0</span>
+                    </div>
+                    <div class="ac-label">cards in</div>
+                </div>
+            </aside>
         </div>
     </section>
 
     <!-- LOCKED -->
     <section class="board-stage" id="stage-locked" hidden>
-        <div class="board-locked">
-            <div class="lock-icon">🔒</div>
-            <h2>Answers Locked</h2>
-            <p>Holding for the reveal…</p>
+        <div class="locked-card">
+            <span class="stamp locked-stamp">Closed</span>
+            <h2>Pencils down.</h2>
+            <p>The host will reveal the answer momentarily.</p>
         </div>
     </section>
 
     <!-- REVEALED -->
     <section class="board-stage" id="stage-revealed" hidden>
-        <div class="board-reveal">
-            <div class="reveal-header">
-                <h2>The answer is…</h2>
-                <div class="board-reveal-answer" id="board-reveal-answer">—</div>
-                <p class="board-reveal-explanation" id="board-reveal-explanation" hidden></p>
+        <div class="reveal-grid">
+            <div class="reveal-answer-card">
+                <div class="eyebrow">The Answer</div>
+                <div class="reveal-answer" id="board-reveal-answer">—</div>
+                <p class="reveal-explanation" id="board-reveal-explanation" hidden></p>
             </div>
-            <div class="board-reveal-table">
-                <h3>This round</h3>
-                <ul class="board-round-results" id="board-round-results"></ul>
+            <div class="reveal-table-card">
+                <div class="ribbon ribbon-mustard reveal-table-ribbon">This Round</div>
+                <ol class="reveal-table" id="board-round-results"></ol>
             </div>
         </div>
     </section>
 
     <!-- FINALE -->
     <section class="board-stage" id="stage-finale" hidden>
-        <div class="board-finale">
-            <div class="confetti" aria-hidden="true"></div>
-            <h2 class="finale-title">🏆 Champions 🏆</h2>
-            <div class="finale-podium" id="finale-podium"></div>
-            <div class="finale-awards">
-                <h3>Tonight's Awards</h3>
-                <ul id="finale-awards-list"></ul>
+        <div class="finale-shell">
+            <div class="finale-ribbon">— CHAMPIONS —</div>
+            <h2 class="finale-headline"><em>The</em> Drake <em>Trivia</em> Trophy</h2>
+
+            <div class="podium" id="finale-podium"></div>
+
+            <div class="awards-wrap">
+                <div class="eyebrow">Tonight&rsquo;s Honours</div>
+                <ul class="awards" id="finale-awards-list"></ul>
             </div>
         </div>
     </section>
 
+    <!-- FOOTER MAST -->
     <footer class="board-foot">
         <span class="conn-status" id="board-conn-status">offline</span>
-        <span class="board-foot-tip">Press <kbd>F</kbd> for fullscreen · <kbd>M</kbd> to mute</span>
+        <span class="foot-divider">·</span>
+        <span class="foot-tip">PRESS <kbd>F</kbd> FOR FULLSCREEN</span>
+        <span class="foot-divider">·</span>
+        <span class="foot-stamp">DRAKE TRIVIA · ORIGINAL EDITION</span>
     </footer>
 </div>
 {% endblock %}

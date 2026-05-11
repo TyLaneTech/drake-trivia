@@ -106,23 +106,22 @@
         }
         rows.forEach(r => {
             const li = document.createElement('li');
-            li.style.borderLeftColor = r.color || 'var(--brand)';
+            li.style.borderLeftColor = r.color || 'var(--ruby)';
             li.innerHTML = `
-                <span class="leaderboard-rank">#${r.rank}</span>
-                <span class="leaderboard-emoji">${escapeHtml(r.emoji || '🎯')}</span>
+                <span class="leaderboard-rank">${r.rank}</span>
+                <span class="leaderboard-emoji" style="color: ${r.color}">${window.dt.icon(r.emoji || 'target')}</span>
                 <span class="leaderboard-name">${escapeHtml(r.team_name)}</span>
                 <span class="leaderboard-score">${r.score}</span>
             `;
             els.leaderboard.appendChild(li);
         });
 
-        // Manual adjust rows
         els.manualAdjustBody.innerHTML = '';
         rows.forEach(r => {
             const row = document.createElement('div');
             row.className = 'manual-adjust-row';
             row.innerHTML = `
-                <span class="name">${escapeHtml(r.emoji || '🎯')} ${escapeHtml(r.team_name)}</span>
+                <span class="name"><span style="color: ${r.color}">${window.dt.icon(r.emoji || 'target')}</span> ${escapeHtml(r.team_name)}</span>
                 <button data-team="${r.team_id}" data-delta="-1" title="-1">−</button>
                 <span class="score">${r.score}</span>
                 <button data-team="${r.team_id}" data-delta="1" title="+1">+</button>
@@ -265,7 +264,7 @@
                 <td>${r.points}</td>
                 <td>${r.time_limit_s}s</td>
                 <td class="row-actions">
-                    <button class="primary" data-act="push" data-id="${r.id}" title="Push this question to the game now">▶︎</button>
+                    <button class="primary" data-act="push" data-id="${r.id}" title="Push this question to the game now">Push</button>
                     <button data-act="edit" data-id="${r.id}">Edit</button>
                     <button class="danger" data-act="del" data-id="${r.id}">Delete</button>
                 </td>
@@ -430,7 +429,7 @@
             }
             tbody.innerHTML = teams.map(t => `
                 <tr>
-                    <td>${escapeHtml(t.emoji || '🎯')} ${escapeHtml(t.name)}</td>
+                    <td><span style="color: ${escapeHtml(t.color)}">${window.dt.icon(t.emoji || 'target')}</span> ${escapeHtml(t.name)}</td>
                     <td><span class="swatch" style="background: ${escapeHtml(t.color)}"></span>${escapeHtml(t.color)}</td>
                     <td><strong>${t.score}</strong></td>
                     <td>${t.id}</td>

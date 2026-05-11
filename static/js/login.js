@@ -1,33 +1,44 @@
 (() => {
     'use strict';
+
     const nameInput = document.getElementById('team-name-input');
-    const emojiInput = document.getElementById('emoji-input');
     const colorInput = document.getElementById('color-input');
+    const emojiInput = document.getElementById('emoji-input');
+    const previewCard = document.getElementById('team-preview');
     const previewName = document.getElementById('preview-name');
     const previewEmoji = document.getElementById('preview-emoji');
-    const preview = document.getElementById('team-preview');
 
-    const update = () => {
-        previewName.textContent = (nameInput.value || 'Your team name');
-        previewName.style.color = colorInput.value;
-        previewEmoji.textContent = emojiInput.value || '🎯';
-        preview.style.borderColor = colorInput.value;
-        preview.style.boxShadow = `0 0 0 1px ${colorInput.value}33, 0 8px 24px ${colorInput.value}26`;
+    const swatches = [...document.querySelectorAll('.swatch')];
+    const emblems = [...document.querySelectorAll('.emblem')];
+
+    const selectSwatch = (color) => {
+        colorInput.value = color;
+        swatches.forEach(s => s.classList.toggle('selected', s.dataset.color === color));
+        previewCard.style.setProperty('--c', color);
+    };
+    const selectEmblem = (slug) => {
+        emojiInput.value = slug;
+        emblems.forEach(e => e.classList.toggle('selected', e.dataset.emblem === slug));
+        previewEmoji.innerHTML = `<svg class="icon icon-2xl"><use href="/static/images/sprite.svg#i-${slug}"/></svg>`;
     };
 
-    nameInput.addEventListener('input', update);
-    emojiInput.addEventListener('input', update);
-    colorInput.addEventListener('input', update);
+    swatches.forEach(s => s.addEventListener('click', () => selectSwatch(s.dataset.color)));
+    emblems.forEach(e => e.addEventListener('click', () => selectEmblem(e.dataset.emblem)));
 
-    document.querySelectorAll('.existing-teams button[data-name]').forEach(btn => {
+    nameInput.addEventListener('input', () => {
+        previewName.textContent = nameInput.value.trim() || '— pick a name —';
+    });
+
+    document.querySelectorAll('.rejoin button[data-name]').forEach(btn => {
         btn.addEventListener('click', () => {
             nameInput.value = btn.dataset.name;
-            colorInput.value = btn.dataset.color || '#d61f2b';
-            emojiInput.value = btn.dataset.emoji || '🎯';
-            update();
+            selectSwatch(btn.dataset.color || '#8b1d2a');
+            selectEmblem(btn.dataset.emoji || 'target');
+            previewName.textContent = btn.dataset.name;
             nameInput.focus();
         });
     });
 
-    update();
+    selectSwatch(colorInput.value || '#8b1d2a');
+    selectEmblem(emojiInput.value || 'target');
 })();

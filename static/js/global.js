@@ -5,6 +5,18 @@
 
     const NS = window.dt = window.dt || {};
 
+    /* SVG icon helper. Usage: dt.icon('bolt') or dt.icon('shield', { className: 'icon-lg' }).
+       All icons live in /static/images/sprite.svg as <symbol id="i-{name}">. */
+    NS.SPRITE = '/static/images/sprite.svg';
+    NS.icon = (name, opts = {}) => {
+        const cls = ['icon', opts.className || ''].filter(Boolean).join(' ');
+        const style = opts.color ? ` style="color: ${opts.color}"` : '';
+        return `<svg class="${cls}"${style} aria-hidden="true"><use href="${NS.SPRITE}#i-${name}"/></svg>`;
+    };
+
+    /* Canonical team emblem slugs */
+    NS.EMBLEMS = ['target','bolt','shield','crown','flame','anchor','mountain','star','moon','leaf','diamond','eye'];
+
     NS.formatTime = (s) => {
         if (s == null || isNaN(s)) return '--';
         s = Math.max(0, Math.round(s));

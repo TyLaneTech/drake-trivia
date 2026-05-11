@@ -29,8 +29,10 @@ class Team(db.Model):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(80), unique=True, nullable=False)
-    color: Mapped[str] = mapped_column(String(16), default='#d61f2b')
-    emoji: Mapped[str] = mapped_column(String(8), default='🎯')
+    color: Mapped[str] = mapped_column(String(16), default='#8b1d2a')
+    # Emblem slug — references an SVG symbol id in /static/images/sprite.svg.
+    # Field is named "emoji" for back-compat; treat as opaque identifier.
+    emoji: Mapped[str] = mapped_column(String(32), default='target')
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     participations: Mapped[list['GameParticipant']] = relationship(back_populates='team')

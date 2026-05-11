@@ -330,7 +330,7 @@ def compute_awards(game: Game) -> list[dict]:
             'title': 'Brainiacs',
             'subtitle': f"Most correct: {most['correct']}",
             'team': most,
-            'emoji': '🧠',
+            'icon': 'star',
         })
     # Fastest fingers (lowest avg correct ms)
     fast_candidates = [t for t in by_team.values() if t['correct'] > 0]
@@ -341,7 +341,7 @@ def compute_awards(game: Game) -> list[dict]:
             'title': 'Fastest Fingers',
             'subtitle': f"Avg {avg_s:.1f}s on correct answers",
             'team': fast,
-            'emoji': '⚡',
+            'icon': 'bolt',
         })
     # First to buzz the most
     buzz = max(by_team.values(), key=lambda t: t['first_correct'])
@@ -350,7 +350,7 @@ def compute_awards(game: Game) -> list[dict]:
             'title': 'Buzzer Bandits',
             'subtitle': f"First-correct on {buzz['first_correct']} questions",
             'team': buzz,
-            'emoji': '🔔',
+            'icon': 'sparkle',
         })
     return awards
 

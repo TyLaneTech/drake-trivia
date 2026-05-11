@@ -63,6 +63,7 @@
     const stopTimer = () => {
         if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
     };
+    const TIMER_C = 125.66;  // 2 * pi * r where r=20
     const startTimer = (round, limit) => {
         stopTimer();
         if (!round.shown_at) return;
@@ -71,14 +72,12 @@
         const tick = () => {
             const elapsed = (Date.now() - shownAt) / 1000;
             const remaining = Math.max(0, total - elapsed);
-            const intRem = Math.ceil(remaining);
-            ui.timerNum.textContent = intRem;
-            // Ring: circumference 113.1 = 2*pi*18
+            ui.timerNum.textContent = Math.ceil(remaining);
             const pct = Math.max(0, remaining / total);
-            ui.timerRing.style.strokeDashoffset = (113.1 * (1 - pct)).toFixed(2);
-            ui.askTimerWrap.classList.toggle('warn', remaining <= total * 0.4 && remaining > total * 0.2);
+            ui.timerRing.style.strokeDashoffset = (TIMER_C * (1 - pct)).toFixed(2);
+            ui.askTimerWrap.classList.toggle('warn', remaining <= total * 0.45 && remaining > total * 0.2);
             ui.askTimerWrap.classList.toggle('danger', remaining <= total * 0.2);
-            if (remaining <= 0) { stopTimer(); }
+            if (remaining <= 0) stopTimer();
         };
         tick();
         timerInterval = setInterval(tick, 200);
@@ -154,7 +153,6 @@
     const renderRevealed = (round) => {
         stopTimer();
         const q = round.question;
-        // Find my answer
         const myAns = (round.answers || []).find(a => a.team_id === (me && me.team_id));
         const correctAnswerStr = String(q.correct_answer || '').split('|')[0];
         ui.revealAnswerPill.textContent = correctAnswerStr;
@@ -165,26 +163,29 @@
             ui.revealExplanation.hidden = true;
         }
 
+        const banner = document.getElementById('reveal-banner');
+        banner.classList.remove('correct', 'wrong');
+        const iconHTML = (slug) => `<svg class="icon icon-lg"><use href="/static/images/sprite.svg#i-${slug}"/></svg>`;
+
         if (!myAns) {
-            ui.revealIcon.textContent = '—';
-            ui.revealIcon.className = 'reveal-icon';
+            ui.revealIcon.innerHTML = iconHTML('hourglass');
             ui.revealHeadline.textContent = 'No answer recorded';
             ui.revealSub.textContent = "You didn't submit in time.";
             ui.revealDelta.textContent = '+0';
             ui.revealDelta.classList.add('zero');
         } else if (myAns.is_correct) {
-            ui.revealIcon.textContent = '✓';
-            ui.revealIcon.className = 'reveal-icon correct';
+            ui.revealIcon.innerHTML = iconHTML('check');
+            banner.classList.add('correct');
             ui.revealHeadline.textContent = myAns.is_first_correct ? "First & correct!" : 'Correct!';
             ui.revealSub.textContent = myAns.is_first_correct
                 ? "+3 bonus for being fastest"
-                : "Nice one";
+                : "Well played.";
             ui.revealDelta.textContent = `+${myAns.points_awarded}`;
             ui.revealDelta.classList.remove('zero');
             playSfx('correct');
         } else {
-            ui.revealIcon.textContent = '✗';
-            ui.revealIcon.className = 'reveal-icon wrong';
+            ui.revealIcon.innerHTML = iconHTML('cross');
+            banner.classList.add('wrong');
             ui.revealHeadline.textContent = 'Not quite';
             ui.revealSub.textContent = `You said: ${escapeHtml(myAns.answer_text || '—')}`;
             ui.revealDelta.textContent = '+0';
@@ -201,10 +202,10 @@
             const li = document.createElement('li');
             if (me && r.team_id === me.team_id) li.classList.add('is-me');
             li.innerHTML = `
-                <span class="leaderboard-rank">#${r.rank}</span>
-                <span class="leaderboard-emoji">${escapeHtml(r.emoji || '🎯')}</span>
-                <span class="leaderboard-name">${escapeHtml(r.team_name)}</span>
-                <span class="leaderboard-score">${r.score}</span>
+                <span class="ml-rank">${r.rank}</span>
+                <span class="ml-emoji" style="color: ${r.color}">${window.dt.icon(r.emoji || 'target')}</span>
+                <span class="ml-name">${escapeHtml(r.team_name)}</span>
+                <span class="ml-score">${r.score}</span>
             `;
             ui.finaleLeader.appendChild(li);
         });

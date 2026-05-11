@@ -1,64 +1,126 @@
 {% extends "base.html" %}
-{% block title %}Sign in — Drake Trivia{% endblock %}
+{% block title %}Enter the Tournament — Drake Trivia{% endblock %}
 {% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='styles/login.css') }}">{% endblock %}
-{% block body_class %}has-bg-gradient{% endblock %}
 
 {% block content %}
 <div class="login-shell">
-    <div class="login-card">
-        <img src="{{ url_for('static', filename='images/d-logo.png') }}" alt="" class="login-logo">
-        <h1 class="login-title">Drake Trivia</h1>
-        <p class="login-tagline">Pick a team name, claim a color, and get ready.</p>
+    <article class="program">
+        <header class="program-cover">
+            <div class="cover-edition">VOL. I &middot; NO. I &middot; MMXXVI</div>
+            <div class="cover-establishment">— ESTABLISHED THIS NIGHT —</div>
 
-        {% if error %}<div class="login-error">{{ error }}</div>{% endif %}
+            <h1 class="cover-title">
+                <span class="cover-the">The</span>
+                <span class="cover-drake">Drake</span>
+                <span class="cover-trivia">Trivia</span>
+            </h1>
 
-        <form method="post" class="login-form" id="login-form">
-            <label class="field">
-                <span class="field-label">Team name</span>
-                <input type="text" name="team_name" id="team-name-input" required maxlength="80"
-                       autocomplete="off" placeholder="e.g. The Klaytonics" autofocus>
-            </label>
-
-            <div class="field-row">
-                <label class="field field-tight">
-                    <span class="field-label">Emoji</span>
-                    <input type="text" name="emoji" id="emoji-input" value="🎯" maxlength="4" class="emoji-input">
-                </label>
-                <label class="field field-grow">
-                    <span class="field-label">Color</span>
-                    <input type="color" name="color" id="color-input" value="#d61f2b" class="color-input">
-                </label>
+            <div class="cover-ornament">
+                <span class="cover-rule"></span>
+                <span class="cover-ornament-mark">
+                    <svg class="icon icon-lg"><use href="/static/images/sprite.svg#i-fleuron"/></svg>
+                </span>
+                <span class="cover-rule"></span>
             </div>
 
-            <div class="team-preview" id="team-preview">
-                <span class="team-preview-emoji" id="preview-emoji">🎯</span>
-                <span class="team-preview-name" id="preview-name">Your team name</span>
-            </div>
+            <p class="cover-tagline">An evening of contest &amp; cordial dispute<br>between teams of the household.</p>
+
+            <div class="cover-sash">Official Program — Players' Enrollment</div>
+        </header>
+
+        <section class="program-form">
+            {% if error %}<div class="form-error">{{ error }}</div>{% endif %}
+
+            <form method="post" class="enroll-form" id="login-form">
+                <div class="form-row">
+                    <div class="row-num">№ 1</div>
+                    <div class="row-body">
+                        <label class="field-label" for="team-name-input">Name your team</label>
+                        <input type="text" name="team_name" id="team-name-input" required maxlength="80"
+                               autocomplete="off" placeholder="e.g. The Brain Trust" autofocus>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="row-num">№ 2</div>
+                    <div class="row-body">
+                        <label class="field-label">Pick a banner color</label>
+                        <div class="swatches" role="radiogroup" aria-label="Team color">
+                            <button type="button" class="swatch" role="radio" data-color="#8b1d2a" style="--c: #8b1d2a" aria-label="Ruby"></button>
+                            <button type="button" class="swatch" role="radio" data-color="#c08820" style="--c: #c08820" aria-label="Mustard"></button>
+                            <button type="button" class="swatch" role="radio" data-color="#2d5840" style="--c: #2d5840" aria-label="Forest"></button>
+                            <button type="button" class="swatch" role="radio" data-color="#1f4e6b" style="--c: #1f4e6b" aria-label="Navy"></button>
+                            <button type="button" class="swatch" role="radio" data-color="#5a1e6b" style="--c: #5a1e6b" aria-label="Plum"></button>
+                            <button type="button" class="swatch" role="radio" data-color="#a04a20" style="--c: #a04a20" aria-label="Rust"></button>
+                            <button type="button" class="swatch" role="radio" data-color="#3a2e22" style="--c: #3a2e22" aria-label="Ink"></button>
+                            <button type="button" class="swatch" role="radio" data-color="#6b7855" style="--c: #6b7855" aria-label="Sage"></button>
+                        </div>
+                        <input type="hidden" name="color" id="color-input" value="#8b1d2a">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="row-num">№ 3</div>
+                    <div class="row-body">
+                        <label class="field-label">Choose your emblem</label>
+                        <div class="emblems" role="radiogroup" aria-label="Team emblem">
+                            <button type="button" class="emblem" role="radio" data-emblem="target"   aria-label="Target"><svg class="icon icon-lg"><use href="/static/images/sprite.svg#i-target"/></svg></button>
+                            <button type="button" class="emblem" role="radio" data-emblem="bolt"     aria-label="Lightning bolt"><svg class="icon icon-lg"><use href="/static/images/sprite.svg#i-bolt"/></svg></button>
+                            <button type="button" class="emblem" role="radio" data-emblem="shield"   aria-label="Shield"><svg class="icon icon-lg"><use href="/static/images/sprite.svg#i-shield"/></svg></button>
+                            <button type="button" class="emblem" role="radio" data-emblem="crown"    aria-label="Crown"><svg class="icon icon-lg"><use href="/static/images/sprite.svg#i-crown"/></svg></button>
+                            <button type="button" class="emblem" role="radio" data-emblem="flame"    aria-label="Flame"><svg class="icon icon-lg"><use href="/static/images/sprite.svg#i-flame"/></svg></button>
+                            <button type="button" class="emblem" role="radio" data-emblem="anchor"   aria-label="Anchor"><svg class="icon icon-lg"><use href="/static/images/sprite.svg#i-anchor"/></svg></button>
+                            <button type="button" class="emblem" role="radio" data-emblem="mountain" aria-label="Mountain"><svg class="icon icon-lg"><use href="/static/images/sprite.svg#i-mountain"/></svg></button>
+                            <button type="button" class="emblem" role="radio" data-emblem="star"     aria-label="Star"><svg class="icon icon-lg"><use href="/static/images/sprite.svg#i-star"/></svg></button>
+                            <button type="button" class="emblem" role="radio" data-emblem="moon"     aria-label="Moon"><svg class="icon icon-lg"><use href="/static/images/sprite.svg#i-moon"/></svg></button>
+                            <button type="button" class="emblem" role="radio" data-emblem="leaf"     aria-label="Leaf"><svg class="icon icon-lg"><use href="/static/images/sprite.svg#i-leaf"/></svg></button>
+                            <button type="button" class="emblem" role="radio" data-emblem="diamond"  aria-label="Diamond"><svg class="icon icon-lg"><use href="/static/images/sprite.svg#i-diamond"/></svg></button>
+                            <button type="button" class="emblem" role="radio" data-emblem="eye"      aria-label="Eye"><svg class="icon icon-lg"><use href="/static/images/sprite.svg#i-eye"/></svg></button>
+                        </div>
+                        <input type="hidden" name="emoji" id="emoji-input" value="target">
+                    </div>
+                </div>
+
+                <div class="enroll-preview">
+                    <div class="preview-card" id="team-preview">
+                        <span class="preview-emoji" id="preview-emoji">
+                            <svg class="icon icon-2xl"><use href="/static/images/sprite.svg#i-target"/></svg>
+                        </span>
+                        <div class="preview-text">
+                            <div class="preview-label">YOUR TEAM</div>
+                            <div class="preview-name" id="preview-name">— pick a name —</div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-ruby btn-xl enroll-btn">Enroll & Enter Hall</button>
+            </form>
 
             {% if existing_teams %}
-            <details class="existing-teams">
-                <summary>Rejoin an existing team</summary>
+            <details class="rejoin">
+                <summary>Returning team? Resume the night.</summary>
                 <ul>
                     {% for t in existing_teams %}
                     <li>
-                        <button type="button" class="ghost-btn" data-name="{{ t.name }}" data-color="{{ t.color }}" data-emoji="{{ t.emoji }}">
-                            <span style="color: {{ t.color }}">{{ t.emoji }}</span> {{ t.name }}
+                        <button type="button" data-name="{{ t.name }}" data-color="{{ t.color }}" data-emoji="{{ t.emoji }}">
+                            <span class="rejoin-emoji" style="color: {{ t.color }}">
+                                <svg class="icon"><use href="/static/images/sprite.svg#i-{{ t.emoji }}"/></svg>
+                            </span>
+                            <span class="rejoin-name">{{ t.name }}</span>
                         </button>
                     </li>
                     {% endfor %}
                 </ul>
             </details>
             {% endif %}
+        </section>
 
-            <button type="submit" class="primary-btn login-btn">Enter the trivia hall →</button>
-        </form>
-
-        <div class="login-foot">
-            <a href="{{ url_for('board.scoreboard') }}">Open the big-screen scoreboard →</a>
+        <footer class="program-foot">
+            <a href="{{ url_for('board.scoreboard') }}">The Scoreboard →</a>
             <span class="dot">·</span>
-            <a href="{{ url_for('auth.admin_login') }}">Admin login</a>
-        </div>
-    </div>
+            <a href="{{ url_for('auth.admin_login') }}">Host&rsquo;s Entrance</a>
+        </footer>
+    </article>
 </div>
 {% endblock %}
 
