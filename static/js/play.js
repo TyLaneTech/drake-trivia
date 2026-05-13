@@ -51,6 +51,10 @@
         revealDelta: document.getElementById('reveal-score-delta'),
         revealTotal: document.getElementById('reveal-score-total'),
 
+        subTracker: document.getElementById('submissions-tracker'),
+        subList: document.getElementById('sub-track-list'),
+        subCount: document.getElementById('sub-track-count'),
+
         readyBlock: document.getElementById('ready-block'),
         btnReady: document.getElementById('btn-ready'),
         readyConfirmed: document.getElementById('ready-confirmed'),
@@ -71,6 +75,8 @@
     let lastTotalScore = 0;
     let myReadyRoundId = null;
     let readyCountdownInterval = null;
+    let cachedTeams = [];           // last leaderboard — used to render the submissions tracker
+    let submittedSet = new Set();    // round-scoped: team_ids that have submitted
 
     /* ---------- Helpers ---------- */
     const showState = (key) => {
@@ -80,6 +86,9 @@
         if (ui.standingsStrip) {
             ui.standingsStrip.hidden = !(key === 'asking' || key === 'locked' || key === 'revealed');
         }
+        // Submissions tracker visibility depends on the active phase, refresh
+        // whenever the visible card changes.
+        renderSubmissionsTracker();
     };
     const setConn = (online) => {
         ui.conn.textContent = online ? 'connected' : 'offline';
@@ -110,12 +119,14 @@
     };
 
     const updateMyRankFromLeaderboard = (leaderboard) => {
+        if (leaderboard && leaderboard.length) cachedTeams = leaderboard;
         if (!me || !me.team_id || !leaderboard || !leaderboard.length) {
             ui.myRankCard.hidden = true;
             ui.stripName.textContent = (me && me.team_name) || '';
             ui.stripRank.textContent = '—';
             ui.stripScore.textContent = '0';
             ui.stripTotal.textContent = '—';
+            renderSubmissionsTracker();
             return;
         }
         const mine = leaderboard.find(r => r.team_id === me.team_id);
@@ -135,6 +146,42 @@
         ui.stripTotal.textContent = leaderboard.length;
         ui.stripEmblem.style.color = mine.color || 'var(--accent)';
         ui.stripEmblem.innerHTML = `<svg class="icon"><use href="/static/images/sprite.svg#i-${mine.emoji || 'target'}"/></svg>`;
+        renderSubmissionsTracker();
+    };
+
+    const renderSubmissionsTracker = () => {
+        if (!ui.subTracker) return;
+        // Multi-team only. Show during asking + locked. Hide elsewhere.
+        const visiblePhase = Object.entries(states).find(([, el]) => !el.hidden);
+        const phaseKey = visiblePhase ? visiblePhase[0] : null;
+        const showOnPhase = phaseKey === 'asking' || phaseKey === 'locked';
+        const teams = cachedTeams || [];
+        if (!showOnPhase || teams.length < 2) {
+            ui.subTracker.hidden = true;
+            return;
+        }
+        ui.subTracker.hidden = false;
+        ui.subCount.textContent = `${submittedSet.size}/${teams.length}`;
+        // Order: submitted first, then pending (stable name order within each).
+        const sorted = [...teams].sort((a, b) => {
+            const aS = submittedSet.has(a.team_id) ? 0 : 1;
+            const bS = submittedSet.has(b.team_id) ? 0 : 1;
+            if (aS !== bS) return aS - bS;
+            return (a.team_name || '').localeCompare(b.team_name || '');
+        });
+        ui.subList.innerHTML = sorted.map(t => {
+            const submitted = submittedSet.has(t.team_id);
+            const isMe = me && me.team_id === t.team_id;
+            return `
+                <li class="sub-chip ${submitted ? 'is-in' : 'is-pending'}${isMe ? ' is-me' : ''}"
+                    style="--team-color: ${t.color || 'var(--accent)'};"
+                    title="${escapeHtml(t.team_name)}${submitted ? ' — submitted' : ''}">
+                    <span class="sub-chip-emblem">${window.dt.icon(t.emoji || 'target')}</span>
+                    <span class="sub-chip-name">${escapeHtml(t.team_name)}</span>
+                    ${submitted ? '<span class="sub-chip-check">' + window.dt.icon('check') + '</span>' : ''}
+                </li>
+            `;
+        }).join('');
     };
 
     const renderRoundOf = () => {
@@ -223,6 +270,9 @@
         mySubmittedAnswer = null;
         // New round → reset ready state and any reveal countdown
         myReadyRoundId = null;
+        // Reset submissions tracker for the new round, seed from the round
+        // payload so reconnecting mid-round still shows accurate state.
+        submittedSet = new Set(round.submitted_team_ids || []);
         ui.readyBlock.hidden = true;
         stopReadyCountdown();
         renderRoundOf();
@@ -260,6 +310,7 @@
         }
 
         showState('asking');
+        renderSubmissionsTracker();
         startTimer(round, q.time_limit_s);
     };
 
@@ -336,7 +387,48 @@
         });
         const recapLink = document.getElementById('finale-recap-link');
         if (recapLink && payload.game_id) recapLink.href = `/recap/${payload.game_id}`;
+
+        // One-tap "play again" — only sensible for solo games (single team).
+        const replayBtn = document.getElementById('finale-replay-btn');
+        const isSolo = (payload.leaderboard || []).length === 1;
+        if (replayBtn) {
+            const eligible = isSolo && payload.game_id != null;
+            replayBtn.hidden = !eligible;
+            if (eligible) {
+                replayBtn.onclick = () => restartSolo(payload.game_id, replayBtn);
+            }
+        }
         showState('finale');
+    };
+
+    const restartSolo = async (prevGameId, btn) => {
+        const label = btn.querySelector('.finale-replay-label');
+        btn.disabled = true;
+        if (label) label.textContent = 'Starting…';
+        try {
+            const recap = await fetchJSON(`/api/games/${prevGameId}/recap`);
+            const team = (recap.leaderboard || [])[0] || {};
+            const body = {
+                team_name: team.team_name || (me && me.team_name) || '',
+                color: team.color || (me && me.team_color) || '#ff6b4a',
+                emoji: team.emoji || (me && me.team_emoji) || 'target',
+                category_filter: recap.game.category_filter || '',
+                target_question_count: recap.game.target_question_count || 10,
+            };
+            const res = await fetch('/api/solo/start', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify(body),
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) throw new Error(data.error || 'Could not start a new solo game.');
+            window.location.href = data.redirect || '/play';
+        } catch (e) {
+            btn.disabled = false;
+            if (label) label.textContent = 'Start another solo run';
+            alert(e.message);
+        }
     };
 
     /* ---------- Answer submission ---------- */
@@ -463,6 +555,15 @@
         answer_accepted: (data) => {
             ui.lockedAnswerText.textContent = mySubmittedAnswer ?? '(submitted)';
             ui.answeredState.hidden = false;
+            if (me && me.team_id != null) {
+                submittedSet.add(me.team_id);
+                renderSubmissionsTracker();
+            }
+        },
+        answer_count: (data) => {
+            if (!currentRound || data.round_id !== currentRound.round_id) return;
+            submittedSet = new Set(data.submitted_team_ids || []);
+            renderSubmissionsTracker();
         },
         error: (e) => console.warn('socket error:', e),
     });

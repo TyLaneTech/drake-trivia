@@ -43,6 +43,8 @@
     font-family: var(--font-mono);
 }
 
+.recap-replay-btn { margin-top: 6px; align-self: flex-start; }
+
 .recap-other { margin-top: 4px; }
 .recap-other summary {
     cursor: pointer;
@@ -164,7 +166,27 @@
 }
 
 /* ----- Awards ----- */
-.recap-awards {
+.recap-awards { display: flex; flex-direction: column; gap: 18px; }
+.awards-subhead {
+    font-size: 0.74rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--accent);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--accent-soft-glow);
+    margin-bottom: 8px;
+}
+.awards-subhead.is-shame {
+    color: var(--text-3);
+    border-bottom-color: var(--border-2);
+}
+.awards-subhead.is-shame::before { content: '⚠'; opacity: 0.7; }
+
+.recap-awards-group {
     list-style: none;
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -180,6 +202,22 @@
     border: 1px solid var(--border);
     border-radius: var(--radius);
 }
+.recap-award.is-positive {
+    border-left: 3px solid var(--accent);
+}
+.recap-award.is-positive .ra-icon .icon { color: var(--accent); }
+.recap-award.is-positive .ra-title { color: var(--text); }
+
+.recap-award.is-negative {
+    background: rgba(248, 113, 113, 0.04);
+    border: 1px dashed rgba(248, 113, 113, 0.25);
+    border-left: 3px dashed var(--danger);
+    opacity: 0.94;
+}
+.recap-award.is-negative .ra-icon .icon { color: var(--danger); opacity: 0.85; }
+.recap-award.is-negative .ra-title { color: var(--text-2); }
+.recap-award.is-negative .ra-sub { color: var(--text-3); font-style: italic; }
+
 .ra-icon { display: flex; align-items: center; }
 .ra-icon .icon { width: 24px; height: 24px; }
 .ra-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }

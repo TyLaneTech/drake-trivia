@@ -18,6 +18,10 @@
         <span class="recap-eyebrow">Game recap</span>
         <h1 class="recap-title" id="recap-title">Loading…</h1>
         <p class="recap-meta" id="recap-meta"></p>
+        <button type="button" class="btn btn-replay recap-replay-btn" id="recap-replay-btn" hidden>
+            <svg class="icon"><use href="/static/images/sprite.svg#i-play"/></svg>
+            <span class="recap-replay-label">Play another solo run</span>
+        </button>
         <div class="recap-other">
             <details>
                 <summary>Other recent games</summary>
@@ -45,7 +49,7 @@
             <svg class="icon"><use href="/static/images/sprite.svg#i-medal"/></svg>
             Awards
         </h2>
-        <ul class="recap-awards" id="recap-awards"></ul>
+        <div class="recap-awards" id="recap-awards"></div>
     </section>
 
     <!-- Round-by-round breakdown -->

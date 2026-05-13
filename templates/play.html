@@ -90,6 +90,14 @@
                 <span class="answered-value" id="locked-answer-text"></span>
             </div>
         </div>
+
+        <div class="submissions-tracker" id="submissions-tracker" hidden>
+            <div class="sub-track-head">
+                <span class="sub-track-title">Submissions</span>
+                <span class="sub-track-count" id="sub-track-count">0/0</span>
+            </div>
+            <ul class="sub-track-list" id="sub-track-list"></ul>
+        </div>
     </section>
 
     <!-- LOCKED -->
@@ -161,10 +169,16 @@
         <h1 class="play-title centered">Game over!</h1>
         <p class="play-sub centered">Final standings:</p>
         <ol class="mini-leaderboard" id="finale-leaderboard"></ol>
-        <a href="{{ url_for('play.recap_latest') }}" class="btn btn-recap" id="finale-recap-link">
-            <svg class="icon"><use href="/static/images/sprite.svg#i-reveal"/></svg>
-            <span>Review every question</span>
-        </a>
+        <div class="finale-actions">
+            <button type="button" class="btn btn-replay" id="finale-replay-btn" hidden>
+                <svg class="icon"><use href="/static/images/sprite.svg#i-play"/></svg>
+                <span class="finale-replay-label">Start another solo run</span>
+            </button>
+            <a href="{{ url_for('play.recap_latest') }}" class="btn btn-recap" id="finale-recap-link">
+                <svg class="icon"><use href="/static/images/sprite.svg#i-reveal"/></svg>
+                <span>Review every question</span>
+            </a>
+        </div>
     </section>
 
     <footer class="play-foot">

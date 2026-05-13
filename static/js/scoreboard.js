@@ -33,6 +33,7 @@
         countDone: document.getElementById('board-count-done'),
         countTotal: document.getElementById('board-count-total'),
         acBar: document.getElementById('ac-bar-fill'),
+        teamList: document.getElementById('board-team-list'),
 
         revealAnswer: document.getElementById('board-reveal-answer'),
         revealExplanation: document.getElementById('board-reveal-explanation'),
@@ -46,6 +47,8 @@
     let currentRound = null;
     let timerInterval = null;
     let lastScores = {};
+    let cachedTeams = [];
+    let submittedSet = new Set();
 
     const showStage = (key) => {
         Object.entries(stages).forEach(([k, el]) => el.hidden = (k !== key));
@@ -85,6 +88,7 @@
     };
 
     const renderLeaderboard = (rows) => {
+        if (rows && rows.length) cachedTeams = rows;
         ui.leaderList.innerHTML = '';
         if (!rows || !rows.length) {
             ui.leaderList.innerHTML = '<li class="standings-empty">Enrollment in progress — awaiting teams…</li>';
@@ -115,8 +119,34 @@
         ui.acBar.style.width = `${pct}%`;
     };
 
+    const renderTeamSubmissions = () => {
+        if (!ui.teamList) return;
+        const teams = cachedTeams || [];
+        if (!teams.length) {
+            ui.teamList.innerHTML = '';
+            return;
+        }
+        const sorted = [...teams].sort((a, b) => {
+            const aS = submittedSet.has(a.team_id) ? 0 : 1;
+            const bS = submittedSet.has(b.team_id) ? 0 : 1;
+            if (aS !== bS) return aS - bS;
+            return (a.team_name || '').localeCompare(b.team_name || '');
+        });
+        ui.teamList.innerHTML = sorted.map(t => {
+            const submitted = submittedSet.has(t.team_id);
+            return `
+                <li class="ac-team ${submitted ? 'is-in' : 'is-pending'}" style="--team-color: ${t.color || 'var(--accent)'};">
+                    <span class="ac-team-emblem">${window.dt.icon(t.emoji || 'target')}</span>
+                    <span class="ac-team-name">${escapeHtml(t.team_name)}</span>
+                    ${submitted ? '<span class="ac-team-check">' + window.dt.icon('check') + '</span>' : ''}
+                </li>
+            `;
+        }).join('');
+    };
+
     const renderAsking = (round, totalTeams) => {
         currentRound = round;
+        submittedSet = new Set(round.submitted_team_ids || []);
         const q = round.question;
         ui.roundNum.textContent = round.sequence;
         ui.category.textContent = q.category;
@@ -136,6 +166,7 @@
         ui.countDone.textContent = round.answer_count;
         ui.countTotal.textContent = totalTeams || 0;
         updateAnswerBar();
+        renderTeamSubmissions();
         setPhase('Asking');
         showStage('asking');
         startTimer(round, q.time_limit_s);
@@ -202,8 +233,11 @@
         (payload.awards || []).forEach(a => {
             const li = document.createElement('li');
             const aSlug = a.icon || 'medal';
+            const isNeg = a.tone === 'negative';
+            li.className = isNeg ? 'is-negative' : 'is-positive';
+            const iconColor = isNeg ? 'var(--danger)' : 'var(--mustard, var(--accent))';
             li.innerHTML = `
-                <span class="award-emoji">${window.dt.icon(aSlug, { className: 'icon-2xl', color: 'var(--mustard)' })}</span>
+                <span class="award-emoji">${window.dt.icon(aSlug, { className: 'icon-2xl', color: iconColor })}</span>
                 <span>
                     <div class="award-title">${escapeHtml(a.title)}</div>
                     <div class="award-sub">${escapeHtml(a.subtitle || '')}</div>
@@ -283,7 +317,9 @@
         answer_count: (p) => {
             ui.countDone.textContent = p.answer_count;
             ui.countTotal.textContent = p.total_teams;
+            submittedSet = new Set(p.submitted_team_ids || []);
             updateAnswerBar();
+            renderTeamSubmissions();
         },
         finale: renderFinale,
     });

@@ -7,6 +7,16 @@
     gap: 18px;
 }
 
+/* ---------------- Finale actions ---------------- */
+.finale-actions {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: stretch;
+}
+.finale-actions .btn { width: 100%; }
+
 /* ---------------- Persistent standings strip ---------------- */
 .standings-strip {
     width: 100%;
@@ -454,6 +464,82 @@
     text-transform: uppercase;
     letter-spacing: 0.06em;
     font-weight: 600;
+}
+
+/* ---------------- Submissions tracker (asking + locked) ---------------- */
+.submissions-tracker {
+    margin-top: 16px;
+    padding: 12px 14px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.sub-track-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.sub-track-title {
+    font-size: 0.72rem;
+    color: var(--text-3);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 700;
+}
+.sub-track-count {
+    font-family: var(--font-mono);
+    font-size: 0.84rem;
+    color: var(--text);
+    font-weight: 700;
+}
+.sub-track-list {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.sub-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px 4px 8px;
+    border-radius: var(--radius-full);
+    font-size: 0.84rem;
+    font-weight: 600;
+    border: 1px solid var(--border-2);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text-3);
+    transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
+}
+.sub-chip-emblem,
+.sub-chip-check { display: inline-flex; align-items: center; color: var(--team-color, var(--accent)); }
+.sub-chip-emblem .icon,
+.sub-chip-check .icon { width: 14px; height: 14px; }
+.sub-chip-name {
+    max-width: 110px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.sub-chip.is-pending {
+    opacity: 0.55;
+    filter: saturate(0.4);
+    border-style: dashed;
+}
+.sub-chip.is-in {
+    color: var(--text);
+    border-color: color-mix(in oklab, var(--team-color, var(--accent)) 60%, transparent);
+    background: color-mix(in oklab, var(--team-color, var(--accent)) 12%, transparent);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px color-mix(in oklab, var(--team-color, var(--accent)) 22%, transparent);
+}
+.sub-chip.is-in .sub-chip-check .icon { color: var(--success); }
+.sub-chip.is-me {
+    outline: 1px solid var(--accent);
+    outline-offset: 1px;
 }
 
 /* ---------------- Round-of indicator ---------------- */

@@ -326,6 +326,50 @@
     box-shadow: 0 0 8px var(--accent-glow);
 }
 
+.ac-team-list {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 14px;
+}
+.ac-team {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px 8px 12px;
+    border-radius: var(--radius-full);
+    font-size: 1rem;
+    font-weight: 600;
+    border: 1px solid var(--border-2);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text-3);
+    transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
+}
+.ac-team-emblem,
+.ac-team-check { display: inline-flex; align-items: center; color: var(--team-color, var(--accent)); }
+.ac-team-emblem .icon { width: 18px; height: 18px; }
+.ac-team-check .icon { width: 16px; height: 16px; color: var(--success); }
+.ac-team-name {
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.ac-team.is-pending {
+    opacity: 0.55;
+    filter: saturate(0.4);
+    border-style: dashed;
+}
+.ac-team.is-in {
+    color: var(--text);
+    border-color: color-mix(in oklab, var(--team-color, var(--accent)) 55%, transparent);
+    background: color-mix(in oklab, var(--team-color, var(--accent)) 14%, transparent);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px color-mix(in oklab, var(--team-color, var(--accent)) 22%, transparent);
+}
+
 /* ============================================================
    LOCKED
    ============================================================ */
@@ -596,6 +640,13 @@
     border-radius: var(--radius);
     text-align: left;
 }
+.awards li.is-negative {
+    background: rgba(248, 113, 113, 0.04);
+    border: 1px dashed rgba(248, 113, 113, 0.25);
+    border-left: 3px dashed var(--danger);
+}
+.awards li.is-negative .award-title { color: var(--text-2); }
+.awards li.is-negative .award-sub { color: var(--text-3); font-style: italic; }
 .award-emoji { display: flex; align-items: center; justify-content: center; color: var(--warning); }
 .award-emoji .icon { width: 32px; height: 32px; }
 .award-title { font-size: 1.1rem; font-weight: 700; letter-spacing: -0.01em; }

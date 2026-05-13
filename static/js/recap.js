@@ -60,9 +60,12 @@
             return;
         }
         els.awardsSection.hidden = false;
-        els.awards.innerHTML = awards.map(a => `
-            <li class="recap-award">
-                <span class="ra-icon">${window.dt.icon(a.icon || 'medal', { className: 'icon-2xl', color: 'var(--mustard, var(--accent))' })}</span>
+        // Split into positive (Hall of Fame) and negative (Hall of Shame)
+        const positives = awards.filter(a => a.tone !== 'negative');
+        const negatives = awards.filter(a => a.tone === 'negative');
+        const renderOne = (a) => `
+            <li class="recap-award ${a.tone === 'negative' ? 'is-negative' : 'is-positive'}">
+                <span class="ra-icon">${window.dt.icon(a.icon || 'medal', { className: 'icon-2xl' })}</span>
                 <div class="ra-text">
                     <div class="ra-title">${escapeHtml(a.title)}</div>
                     <div class="ra-sub">${escapeHtml(a.subtitle || '')}</div>
@@ -72,7 +75,15 @@
                     <span>${escapeHtml(a.team.team_name)}</span>
                 </span>
             </li>
-        `).join('');
+        `;
+        let html = '';
+        if (positives.length) {
+            html += `<h3 class="awards-subhead">Hall of Fame</h3><ul class="recap-awards-group">${positives.map(renderOne).join('')}</ul>`;
+        }
+        if (negatives.length) {
+            html += `<h3 class="awards-subhead is-shame">Hall of Shame</h3><ul class="recap-awards-group">${negatives.map(renderOne).join('')}</ul>`;
+        }
+        els.awards.innerHTML = html;
     };
 
     const renderRounds = (rounds) => {
@@ -169,6 +180,42 @@
         }
     };
 
+    const wireReplay = (data) => {
+        const btn = document.getElementById('recap-replay-btn');
+        if (!btn) return;
+        const isSolo = (data.leaderboard || []).length === 1;
+        if (!isSolo) { btn.hidden = true; return; }
+        btn.hidden = false;
+        btn.onclick = async () => {
+            const label = btn.querySelector('.recap-replay-label');
+            btn.disabled = true;
+            if (label) label.textContent = 'Starting…';
+            try {
+                const team = data.leaderboard[0] || {};
+                const body = {
+                    team_name: team.team_name,
+                    color: team.color || '#ff6b4a',
+                    emoji: team.emoji || 'target',
+                    category_filter: data.game.category_filter || '',
+                    target_question_count: data.game.target_question_count || 10,
+                };
+                const res = await fetch('/api/solo/start', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify(body),
+                });
+                const result = await res.json().catch(() => ({}));
+                if (!res.ok) throw new Error(result.error || 'Could not start a new solo game.');
+                window.location.href = result.redirect || '/play';
+            } catch (e) {
+                btn.disabled = false;
+                if (label) label.textContent = 'Play another solo run';
+                alert(e.message);
+            }
+        };
+    };
+
     const init = async () => {
         try {
             const data = await fetchJSON(`/api/games/${gameId}/recap`);
@@ -176,6 +223,7 @@
             renderStandings(data.leaderboard);
             renderAwards(data.awards);
             renderRounds(data.rounds);
+            wireReplay(data);
         } catch (e) {
             const msg = e && e.data && e.data.error ? e.data.error : (e.message || 'Could not load this game.');
             els.title.textContent = 'Recap unavailable';

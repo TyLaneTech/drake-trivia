@@ -208,6 +208,7 @@ def round_snapshot(round_: Round, *, include_correct: bool = False) -> dict:
         'revealed_at': _utc(round_.revealed_at),
         'time_limit_s': q.time_limit_s,
         'answer_count': answer_count(round_),
+        'submitted_team_ids': [a.team_id for a in round_.answers],
         'question': q.to_player_dict(),
     }
     if include_correct or round_.phase == 'revealed':
@@ -241,10 +242,12 @@ def broadcast_leaderboard(game: Game) -> None:
 
 
 def broadcast_answer_count(round_: Round) -> None:
+    submitted_team_ids = [a.team_id for a in round_.answers]
     socketio.emit('answer_count', {
         'round_id': round_.id,
-        'answer_count': answer_count(round_),
+        'answer_count': len(submitted_team_ids),
         'total_teams': total_teams_in_game(round_.game),
+        'submitted_team_ids': submitted_team_ids,
     })
 
 
@@ -394,58 +397,165 @@ def score_round(round_: Round) -> None:
 
 
 def compute_awards(game: Game) -> list[dict]:
-    """Special awards across all rounds in this game."""
-    rows = db.session.execute(
-        select(Answer, Team).join(Team, Team.id == Answer.team_id)
-        .join(Round, Round.id == Answer.round_id).where(Round.game_id == game.id)
-    ).all()
-    if not rows:
-        return []
+    """Special awards across all rounds in this game.
 
+    Each award has a `tone` of 'positive' or 'negative' so the UI can render
+    the wall-of-shame separately from the wall-of-fame. Solo games only get
+    the positives (the negatives require multi-team comparisons to land).
+    """
+    # Pull answers in round order so we can compute consecutive-correct streaks.
+    rows = db.session.execute(
+        select(Answer, Team, Round)
+        .join(Team, Team.id == Answer.team_id)
+        .join(Round, Round.id == Answer.round_id)
+        .where(Round.game_id == game.id)
+        .order_by(Round.sequence, Answer.response_time_ms)
+    ).all()
+    rounds_count = rounds_played(game)
+
+    # Seed by_team from every participant — so teams that submitted nothing
+    # still show up for the "Ghosted" award.
     by_team: dict[int, dict] = {}
-    for ans, team in rows:
-        t = by_team.setdefault(team.id, {
+    participants = db.session.execute(
+        select(GameParticipant, Team)
+        .join(Team, Team.id == GameParticipant.team_id)
+        .where(GameParticipant.game_id == game.id)
+    ).all()
+    for _, team in participants:
+        by_team[team.id] = {
             'team_id': team.id, 'team_name': team.name, 'color': team.color, 'emoji': team.emoji,
-            'attempts': 0, 'correct': 0, 'first_correct': 0, 'total_ms': 0, 'correct_ms': 0,
-        })
+            'attempts': 0, 'correct': 0, 'first_correct': 0,
+            'wrong': 0, 'total_ms': 0, 'correct_ms': 0, 'wrong_ms': 0,
+            'streak_max': 0, '_streak_cur': 0,
+            'rounds_answered': set(),
+        }
+
+    for ans, team, rd in rows:
+        t = by_team.get(team.id)
+        if t is None:
+            continue  # answer from a deleted team — skip
         t['attempts'] += 1
+        t['rounds_answered'].add(rd.id)
+        t['total_ms'] += ans.response_time_ms
         if ans.is_correct:
             t['correct'] += 1
             t['correct_ms'] += ans.response_time_ms
             if ans.is_first_correct:
                 t['first_correct'] += 1
-        t['total_ms'] += ans.response_time_ms
+            t['_streak_cur'] += 1
+            if t['_streak_cur'] > t['streak_max']:
+                t['streak_max'] = t['_streak_cur']
+        else:
+            t['wrong'] += 1
+            t['wrong_ms'] += ans.response_time_ms
+            t['_streak_cur'] = 0
 
-    awards = []
-    # Most correct
-    most = max(by_team.values(), key=lambda t: (t['correct'], -t['total_ms']))
+    for t in by_team.values():
+        t['missed'] = max(0, rounds_count - len(t['rounds_answered']))
+        del t['_streak_cur']
+        del t['rounds_answered']
+
+    if not by_team or rounds_count == 0:
+        return []
+
+    teams_list = list(by_team.values())
+    total_teams = len(teams_list)
+    is_multi = total_teams >= 2
+    awards: list[dict] = []
+
+    def add(title, subtitle, team, icon, tone='positive'):
+        awards.append({'title': title, 'subtitle': subtitle, 'team': team,
+                       'icon': icon, 'tone': tone})
+
+    # ---------------- POSITIVE ----------------
+
+    # Brainiacs — most correct
+    most = max(teams_list, key=lambda t: (t['correct'], -t['total_ms']))
     if most['correct'] > 0:
-        awards.append({
-            'title': 'Brainiacs',
-            'subtitle': f"Most correct: {most['correct']}",
-            'team': most,
-            'icon': 'star',
-        })
-    # Fastest fingers (lowest avg correct ms)
-    fast_candidates = [t for t in by_team.values() if t['correct'] > 0]
-    if fast_candidates:
-        fast = min(fast_candidates, key=lambda t: t['correct_ms'] / max(t['correct'], 1))
+        add('Brainiacs', f"Most correct: {most['correct']}", most, 'star')
+
+    # Fastest Fingers — lowest avg correct ms
+    fast_pool = [t for t in teams_list if t['correct'] > 0]
+    if fast_pool:
+        fast = min(fast_pool, key=lambda t: t['correct_ms'] / t['correct'])
         avg_s = (fast['correct_ms'] / fast['correct']) / 1000.0
-        awards.append({
-            'title': 'Fastest Fingers',
-            'subtitle': f"Avg {avg_s:.1f}s on correct answers",
-            'team': fast,
-            'icon': 'bolt',
-        })
-    # First to buzz the most
-    buzz = max(by_team.values(), key=lambda t: t['first_correct'])
-    if buzz['first_correct'] > 0:
-        awards.append({
-            'title': 'Buzzer Bandits',
-            'subtitle': f"First-correct on {buzz['first_correct']} questions",
-            'team': buzz,
-            'icon': 'sparkle',
-        })
+        add('Fastest Fingers', f"Avg {avg_s:.1f}s on correct answers", fast, 'bolt')
+
+    # Buzzer Bandits — most first-correct (multi-team only; in solo every correct is first)
+    if is_multi:
+        buzz = max(teams_list, key=lambda t: t['first_correct'])
+        if buzz['first_correct'] > 0:
+            add('Buzzer Bandits',
+                f"First-correct on {buzz['first_correct']} questions",
+                buzz, 'sparkle')
+
+    # Pinpoint Precision — highest correct rate (min 3 attempts, > 50%)
+    precision_pool = [t for t in teams_list if t['attempts'] >= 3]
+    if precision_pool:
+        precise = max(precision_pool, key=lambda t: (t['correct'] / t['attempts'], t['correct']))
+        rate = precise['correct'] / precise['attempts']
+        if rate > 0.5 and precise['correct'] >= 2:
+            add('Pinpoint Precision',
+                f"{precise['correct']}/{precise['attempts']} correct ({rate * 100:.0f}%)",
+                precise, 'target')
+
+    # Hot Streak — longest run of consecutive correct (need 3+)
+    streak_pool = [t for t in teams_list if t['streak_max'] >= 3]
+    if streak_pool:
+        streaker = max(streak_pool, key=lambda t: t['streak_max'])
+        add('Hot Streak', f"{streaker['streak_max']} correct in a row", streaker, 'flame')
+
+    # Iron Will — answered every single question (only meaningful for 3+ rounds,
+    # and only if not everyone qualifies — otherwise it's not special)
+    if rounds_count >= 3:
+        iron_pool = [t for t in teams_list if t['missed'] == 0 and t['attempts'] > 0]
+        if iron_pool and len(iron_pool) < total_teams:
+            iron = iron_pool[0]
+            add('Iron Will',
+                f"Answered every one of {rounds_count} questions",
+                iron, 'shield')
+
+    # ---------------- NEGATIVE (multi-team only) ----------------
+
+    if is_multi:
+        # Wooden Spoon — last place (only if there's a clear last, 3+ teams)
+        if total_teams >= 3:
+            board = leaderboard_for(game)
+            if board:
+                last_row = board[-1]
+                if last_row['score'] < board[0]['score']:
+                    last_t = by_team.get(last_row['team_id'])
+                    if last_t:
+                        add('Wooden Spoon',
+                            f"Finished last with {last_row['score']} points",
+                            last_t, 'anchor', tone='negative')
+
+        # Brain Fog — most wrong answers (need 2+ wrong)
+        fog_pool = [t for t in teams_list if t['wrong'] >= 2]
+        if fog_pool:
+            foggy = max(fog_pool, key=lambda t: (t['wrong'], -t['correct']))
+            add('Brain Fog',
+                f"{foggy['wrong']} wrong answers",
+                foggy, 'moon', tone='negative')
+
+        # Trigger Happy — fastest avg wrong submission (need 2+ wrong)
+        trig_pool = [t for t in teams_list if t['wrong'] >= 2]
+        if trig_pool:
+            trig = min(trig_pool, key=lambda t: t['wrong_ms'] / t['wrong'])
+            avg_s = (trig['wrong_ms'] / trig['wrong']) / 1000.0
+            add('Trigger Happy',
+                f"Avg {avg_s:.1f}s to answer wrong",
+                trig, 'cross', tone='negative')
+
+        # Ghosted — most rounds where the team submitted nothing
+        if rounds_count >= 3:
+            ghost_pool = [t for t in teams_list if t['missed'] >= 2]
+            if ghost_pool:
+                ghost = max(ghost_pool, key=lambda t: t['missed'])
+                add('Ghosted',
+                    f"Missed {ghost['missed']} of {rounds_count} questions",
+                    ghost, 'hourglass', tone='negative')
+
     return awards
 
 
