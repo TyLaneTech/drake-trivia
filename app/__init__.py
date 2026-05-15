@@ -61,12 +61,14 @@ def create_app() -> Flask:
     from .admin import admin_bp
     from .board import board_bp
     from .api import api_bp
+    from .manage import manage_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(play_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(board_bp)
     app.register_blueprint(api_bp)
+    app.register_blueprint(manage_bp)
 
     # Register SocketIO event handlers
     from . import events  # noqa: F401  (side-effect: attaches handlers)

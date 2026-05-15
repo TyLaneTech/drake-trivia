@@ -270,6 +270,22 @@
 }
 .rr-details summary::-webkit-details-marker { display: none; }
 .rr-details summary:hover { background: rgba(255, 255, 255, 0.04); }
+.rr-num-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+.rr-viewer-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+}
+.rr-viewer-status .icon { width: 18px; height: 18px; }
+.rr-viewer-status.is-correct { color: var(--success); }
+.rr-viewer-status.is-wrong { color: var(--danger); }
 .rr-num {
     font-family: var(--font-mono);
     font-weight: 700;
@@ -462,7 +478,7 @@
             "pill pill pill";
         gap: 8px;
     }
-    .rr-num { grid-area: num; }
+    .rr-num-wrap { grid-area: num; }
     .rr-cat { grid-area: cat; justify-self: start; }
     .rr-q-text { grid-area: qtext; white-space: normal; }
     .rr-correct-pill { grid-area: pill; max-width: none; }

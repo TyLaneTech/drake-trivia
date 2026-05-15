@@ -86,7 +86,7 @@
         els.awards.innerHTML = html;
     };
 
-    const renderRounds = (rounds) => {
+    const renderRounds = (rounds, myTeamId) => {
         els.rounds.innerHTML = '';
         if (!rounds || !rounds.length) {
             els.rounds.innerHTML = '<li class="recap-empty-row">No rounds were played in this game.</li>';
@@ -97,6 +97,10 @@
         rounds.forEach(r => {
             const q = r.question;
             const correctText = String(q.correct_answer || '').split('|')[0];
+            const myAns = myTeamId ? (r.answers || []).find(a => a.team_id === myTeamId) : null;
+            const viewerIconHtml = myAns
+                ? `<span class="rr-viewer-status ${myAns.is_correct ? 'is-correct' : 'is-wrong'}" title="You answered ${myAns.is_correct ? 'correctly' : 'incorrectly'}" aria-label="${myAns.is_correct ? 'You answered correctly' : 'You answered incorrectly'}">${window.dt.icon(myAns.is_correct ? 'check' : 'cross')}</span>`
+                : '';
             const optionsHtml = (q.options && q.options.length)
                 ? `<ul class="rr-options">${q.options.map(o => {
                         const isC = String(o).trim().toLowerCase() === String(q.correct_answer || '').trim().toLowerCase();
@@ -124,7 +128,10 @@
             li.innerHTML = `
                 <details class="rr-details">
                     <summary>
-                        <span class="rr-num">Q${r.sequence}</span>
+                        <span class="rr-num-wrap">
+                            ${viewerIconHtml}
+                            <span class="rr-num">Q${r.sequence}</span>
+                        </span>
                         <span class="rr-cat">${escapeHtml(q.category)}</span>
                         <span class="rr-q-text">${escapeHtml(q.text)}</span>
                         <span class="rr-correct-pill"><span class="rr-correct-label">Answer:</span> ${escapeHtml(correctText)}</span>
@@ -222,7 +229,7 @@
             renderHeader(data.game, (data.rounds || []).length);
             renderStandings(data.leaderboard);
             renderAwards(data.awards);
-            renderRounds(data.rounds);
+            renderRounds(data.rounds, data.me && data.me.team_id);
             wireReplay(data);
         } catch (e) {
             const msg = e && e.data && e.data.error ? e.data.error : (e.message || 'Could not load this game.');

@@ -124,6 +124,7 @@ def game_recap(game_id):
             'started_at': game.started_at.isoformat() + 'Z' if game.started_at else None,
             'ended_at': game.ended_at.isoformat() + 'Z' if game.ended_at else None,
         },
+        'me': {'team_id': session.get('team_id')},
         'leaderboard': leaderboard_for(game),
         'awards': compute_awards(game),
         'rounds': rounds_data,
