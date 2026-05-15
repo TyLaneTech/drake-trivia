@@ -394,6 +394,16 @@ kbd {
 }
 .field input::placeholder { color: var(--text-4); }
 
+/* The browser's native dropdown popup ignores `color-scheme: dark` on some
+   platforms, so the inherited near-white `color: var(--text)` ends up
+   white-on-white once the menu opens. Force a dark surface + light text on
+   every <option> so they stay readable in the popup. Applies app-wide. */
+option,
+optgroup {
+    background: var(--bg-1);
+    color: var(--text);
+}
+
 textarea {
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid var(--border-2);
