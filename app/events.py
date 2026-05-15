@@ -12,6 +12,7 @@ from .game import (
     answer_count,
     broadcast_answer_count,
     broadcast_state,
+    ensure_participant,
     game_snapshot,
     get_active_game,
     lock_round,
@@ -32,6 +33,19 @@ def on_connect():
     if game is None:
         emit('state', {'game': None})
         return
+    # Make sure the connecting team is a participant of the *current* game,
+    # not just of whichever game was active when they signed in. Without this,
+    # teams whose /login predated a fresh game don't count toward auto-host
+    # quorum — the first to submit would advance the round before anyone else
+    # got a chance to answer.
+    team_id = session.get('team_id')
+    if team_id and not session.get('is_admin'):
+        team = db.session.get(Team, team_id)
+        if team is not None:
+            before = total_teams_in_game(game)
+            ensure_participant(game, team)
+            if total_teams_in_game(game) != before:
+                broadcast_state(game)
     snapshot = game_snapshot(game, include_correct=False)
     snapshot['me'] = {
         'team_id': session.get('team_id'),
