@@ -516,11 +516,24 @@
 .data-table .question-text {
     max-width: 380px;
     font-weight: 500;
+    /* Single-line truncation keeps every row the same height. Hover the
+       cell (title attribute) to see the full question. */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
+/* The cell stays a normal table-cell (no display: flex on td — that breaks
+   table row sizing in every browser). Flex lives on the inner wrapper. */
 .data-table .row-actions {
-    display: flex;
+    text-align: right;
+    white-space: nowrap;
+}
+.data-table .row-actions-inner {
+    display: inline-flex;
     gap: 6px;
     justify-content: flex-end;
+    align-items: center;
+    vertical-align: middle;
 }
 .data-table .row-actions button {
     background: rgba(255, 255, 255, 0.06);

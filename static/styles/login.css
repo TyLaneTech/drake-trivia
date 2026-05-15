@@ -241,28 +241,107 @@
 
 .login-btn { width: 100%; margin-top: 6px; }
 
+/* ---------- Rejoin block ---------- */
+/* Sits directly under the Team name input. Collapsed by default. Click the
+   toggle to reveal a list of recent teams; clicking a team auto-fills the
+   form. Heights animate via the grid-template-rows trick (0fr → 1fr). */
 .rejoin {
-    margin-top: 16px;
-    padding-top: 16px;
-    border-top: 1px solid var(--border);
+    margin-top: -6px;
 }
-.rejoin summary {
+.rejoin-toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 9px 14px;
+    background: rgba(255, 107, 74, 0.07);
+    border: 1px solid rgba(255, 107, 74, 0.28);
+    border-radius: var(--radius-sm);
+    color: var(--text-2);
     cursor: pointer;
-    list-style: none;
-    color: var(--text-3);
-    font-size: 0.9rem;
-    user-select: none;
-    transition: color var(--t-fast);
+    font-size: 0.92rem;
+    font-weight: 600;
+    text-align: left;
+    transition: background var(--t-fast),
+                color var(--t-fast),
+                border-color var(--t-fast),
+                box-shadow var(--t-fast);
 }
-.rejoin summary::-webkit-details-marker { display: none; }
-.rejoin summary:hover { color: var(--text-2); }
+.rejoin-toggle:hover {
+    background: rgba(255, 107, 74, 0.13);
+    border-color: rgba(255, 107, 74, 0.5);
+    color: var(--text);
+    box-shadow: 0 0 0 3px var(--accent-soft-glow);
+}
+.rejoin-toggle:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--accent-soft-glow);
+    border-color: var(--accent);
+}
+.rejoin-toggle-text {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+.rejoin-count {
+    flex-shrink: 0;
+    min-width: 22px;
+    padding: 1px 8px;
+    background: var(--accent-soft-glow);
+    border: 1px solid rgba(255, 107, 74, 0.35);
+    border-radius: var(--radius-full);
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    font-weight: 700;
+    text-align: center;
+    line-height: 1.5;
+}
+.rejoin-chev {
+    flex-shrink: 0;
+    font-size: 0.95rem;
+    color: var(--accent);
+    transition: transform 260ms cubic-bezier(.22, 1, .36, 1);
+}
+.rejoin-toggle[aria-expanded="true"] {
+    background: rgba(255, 107, 74, 0.12);
+    border-color: rgba(255, 107, 74, 0.45);
+    color: var(--text);
+}
+.rejoin-toggle[aria-expanded="true"] .rejoin-chev {
+    transform: rotate(180deg);
+}
+
+/* Panel uses CSS grid + grid-template-rows for smooth height animation.
+   Inner content sits in a single grid row that interpolates 0fr ↔ 1fr.
+   The outer transitions opacity and a small translate for polish. */
+.rejoin-panel {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transform: translateY(-4px);
+    transition: grid-template-rows 320ms cubic-bezier(.22, 1, .36, 1),
+                opacity 220ms cubic-bezier(.22, 1, .36, 1),
+                transform 280ms cubic-bezier(.22, 1, .36, 1),
+                margin 320ms cubic-bezier(.22, 1, .36, 1);
+}
+.rejoin-panel.is-open {
+    grid-template-rows: 1fr;
+    opacity: 1;
+    transform: translateY(0);
+    margin-top: 8px;
+}
+.rejoin-panel-inner {
+    overflow: hidden;
+    min-height: 0;
+}
+
 .rejoin-list {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    margin-top: 12px;
+    padding: 2px;  /* room for focus rings without clipping */
 }
-.rejoin-list button {
+.rejoin-item {
     display: inline-flex;
     align-items: center;
     gap: 8px;
@@ -273,9 +352,41 @@
     color: var(--text-2);
     cursor: pointer;
     font-size: 0.9rem;
-    transition: background var(--t-fast), color var(--t-fast);
+    transition: background var(--t-fast),
+                color var(--t-fast),
+                border-color var(--t-fast),
+                transform var(--t-fast);
+    /* Subtle stagger reveal — only fires when the panel opens because
+       transitions are scoped via .is-open below. */
+    opacity: 0;
+    transform: translateY(4px);
 }
-.rejoin-list button:hover { background: rgba(255, 255, 255, 0.08); color: var(--text); }
+.rejoin-panel.is-open .rejoin-item {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 240ms cubic-bezier(.22, 1, .36, 1),
+                transform 280ms cubic-bezier(.22, 1, .36, 1),
+                background var(--t-fast),
+                color var(--t-fast),
+                border-color var(--t-fast);
+}
+.rejoin-panel.is-open .rejoin-item:nth-child(1) { transition-delay: 40ms; }
+.rejoin-panel.is-open .rejoin-item:nth-child(2) { transition-delay: 80ms; }
+.rejoin-panel.is-open .rejoin-item:nth-child(3) { transition-delay: 120ms; }
+.rejoin-panel.is-open .rejoin-item:nth-child(4) { transition-delay: 160ms; }
+.rejoin-panel.is-open .rejoin-item:nth-child(5) { transition-delay: 200ms; }
+.rejoin-panel.is-open .rejoin-item:nth-child(n+6) { transition-delay: 240ms; }
+.rejoin-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text);
+    border-color: var(--team-color, var(--border-3));
+    transform: translateY(-1px);
+}
+.rejoin-item:focus-visible {
+    outline: none;
+    border-color: var(--team-color, var(--accent));
+    box-shadow: 0 0 0 3px var(--accent-soft-glow);
+}
 .rejoin-emoji .icon { width: 16px; height: 16px; }
 
 .login-foot {

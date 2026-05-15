@@ -29,7 +29,7 @@
         previewName.textContent = nameInput.value.trim() || '— pick a name —';
     });
 
-    document.querySelectorAll('.rejoin button[data-name]').forEach(btn => {
+    document.querySelectorAll('.rejoin-item[data-name]').forEach(btn => {
         btn.addEventListener('click', () => {
             nameInput.value = btn.dataset.name;
             selectSwatch(btn.dataset.color || '#8b1d2a');
@@ -38,6 +38,16 @@
             nameInput.focus();
         });
     });
+
+    const rejoinToggle = document.getElementById('rejoin-toggle');
+    const rejoinPanel = document.getElementById('rejoin-panel');
+    if (rejoinToggle && rejoinPanel) {
+        rejoinToggle.addEventListener('click', () => {
+            const isOpen = rejoinToggle.getAttribute('aria-expanded') === 'true';
+            rejoinToggle.setAttribute('aria-expanded', String(!isOpen));
+            rejoinPanel.classList.toggle('is-open', !isOpen);
+        });
+    }
 
     selectSwatch(colorInput.value || '#8b1d2a');
     selectEmblem(emojiInput.value || 'target');

@@ -33,6 +33,33 @@
                        autocomplete="off" placeholder="The Brain Trust" autofocus>
             </label>
 
+            {% if existing_teams %}
+            <div class="rejoin" id="rejoin-block">
+                <button type="button" class="rejoin-toggle" id="rejoin-toggle"
+                        aria-expanded="false" aria-controls="rejoin-panel">
+                    <span class="rejoin-toggle-text">Rejoin an existing team</span>
+                    <span class="rejoin-count">{{ existing_teams|length }}</span>
+                    <span class="rejoin-chev" aria-hidden="true">▾</span>
+                </button>
+                <div class="rejoin-panel" id="rejoin-panel" role="region" aria-label="Existing teams">
+                    <div class="rejoin-panel-inner">
+                        <div class="rejoin-list">
+                            {% for t in existing_teams %}
+                            <button type="button" class="rejoin-item"
+                                    data-name="{{ t.name }}" data-color="{{ t.color }}" data-emoji="{{ t.emoji }}"
+                                    style="--team-color: {{ t.color }}">
+                                <span class="rejoin-emoji" style="color: {{ t.color }}">
+                                    <svg class="icon"><use href="/static/images/sprite.svg#i-{{ t.emoji }}"/></svg>
+                                </span>
+                                <span class="rejoin-name">{{ t.name }}</span>
+                            </button>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
             <div class="solo-fields" id="solo-fields" hidden>
                 <label class="field">
                     <span class="field-label">Category</span>
@@ -96,22 +123,6 @@
             </button>
             <div class="form-error" id="solo-error" hidden></div>
         </form>
-
-        {% if existing_teams %}
-        <details class="rejoin">
-            <summary>Or rejoin an existing team</summary>
-            <div class="rejoin-list">
-                {% for t in existing_teams %}
-                <button type="button" data-name="{{ t.name }}" data-color="{{ t.color }}" data-emoji="{{ t.emoji }}">
-                    <span class="rejoin-emoji" style="color: {{ t.color }}">
-                        <svg class="icon"><use href="/static/images/sprite.svg#i-{{ t.emoji }}"/></svg>
-                    </span>
-                    <span class="rejoin-name">{{ t.name }}</span>
-                </button>
-                {% endfor %}
-            </div>
-        </details>
-        {% endif %}
 
         <footer class="login-foot">
             <a href="{{ url_for('board.scoreboard') }}">View scoreboard →</a>

@@ -152,6 +152,61 @@
             `;
             els.rounds.appendChild(li);
         });
+        wireQuestionPopovers();
+    };
+
+    /* ---------- Truncated-question hover popover ---------- */
+    /* The question text in each round summary is single-line + ellipsis.
+       For desktop users, hovering reveals the full text in a styled
+       popover. Mobile users tap the row to expand the details element
+       instead — the popover is hidden via a (hover: none) media query. */
+    let _popover;
+    const ensurePopover = () => {
+        if (_popover) return _popover;
+        _popover = document.createElement('div');
+        _popover.className = 'rr-popover';
+        _popover.setAttribute('role', 'tooltip');
+        document.body.appendChild(_popover);
+        window.addEventListener('scroll', hidePopover, { passive: true });
+        window.addEventListener('resize', hidePopover);
+        return _popover;
+    };
+    const hidePopover = () => { if (_popover) _popover.classList.remove('is-visible'); };
+    const showPopover = (el) => {
+        // Skip if the text isn't actually truncated — nothing to reveal.
+        if (el.scrollWidth <= el.clientWidth + 1) return;
+        const pop = ensurePopover();
+        pop.textContent = el.textContent;
+        pop.classList.remove('is-above', 'is-below');
+        // Make visible (but transparent at first) to measure dimensions.
+        pop.classList.add('is-visible');
+        const rect = el.getBoundingClientRect();
+        const popRect = pop.getBoundingClientRect();
+        const margin = 12;
+        const above = rect.top >= popRect.height + margin;
+        pop.classList.toggle('is-above', above);
+        pop.classList.toggle('is-below', !above);
+        const top = above
+            ? rect.top - popRect.height - 10
+            : rect.bottom + 10;
+        const pad = 8;
+        let left = rect.left + rect.width / 2 - popRect.width / 2;
+        left = Math.max(pad, Math.min(left, window.innerWidth - popRect.width - pad));
+        const arrowX = (rect.left + rect.width / 2) - left;
+        pop.style.setProperty('--arrow-x', `${arrowX}px`);
+        pop.style.top = `${top}px`;
+        pop.style.left = `${left}px`;
+    };
+    const wireQuestionPopovers = () => {
+        els.rounds.querySelectorAll('.rr-q-text').forEach(el => {
+            // Tag truncated text so CSS can apply the `cursor: help` hint
+            // once layout settles — checked on hover too as a safety net.
+            requestAnimationFrame(() => {
+                if (el.scrollWidth > el.clientWidth + 1) el.classList.add('is-truncated');
+            });
+            el.addEventListener('mouseenter', () => showPopover(el));
+            el.addEventListener('mouseleave', hidePopover);
+        });
     };
 
     const renderHeader = (game, totalRounds) => {

@@ -337,16 +337,18 @@
         tbody.innerHTML = rows.map(r => `
             <tr>
                 <td>${r.id}</td>
-                <td class="question-text">${escapeHtml(r.text)}</td>
+                <td class="question-text" title="${escapeHtml(r.text)}">${escapeHtml(r.text)}</td>
                 <td>${typeLabel(r.type)}</td>
                 <td>${escapeHtml(r.category)}</td>
                 <td><span class="tag tag-difficulty" data-d="${escapeHtml(r.difficulty)}">${escapeHtml(r.difficulty)}</span></td>
                 <td>${r.points}</td>
                 <td>${r.time_limit_s}s</td>
                 <td class="row-actions">
-                    <button class="primary" data-act="push" data-id="${r.id}" title="Push this question to the game now">Push</button>
-                    <button data-act="edit" data-id="${r.id}">Edit</button>
-                    <button class="danger" data-act="del" data-id="${r.id}">Delete</button>
+                    <div class="row-actions-inner">
+                        <button class="primary" data-act="push" data-id="${r.id}" title="Push this question to the game now">Push</button>
+                        <button data-act="edit" data-id="${r.id}">Edit</button>
+                        <button class="danger" data-act="del" data-id="${r.id}">Delete</button>
+                    </div>
                 </td>
             </tr>
         `).join('');
@@ -514,7 +516,9 @@
                     <td><strong>${t.score}</strong></td>
                     <td>${t.id}</td>
                     <td class="row-actions">
-                        <button class="danger" data-act="delete" data-id="${t.id}">Delete</button>
+                        <div class="row-actions-inner">
+                            <button class="danger" data-act="delete" data-id="${t.id}">Delete</button>
+                        </div>
                     </td>
                 </tr>
             `).join('');
